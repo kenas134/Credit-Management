@@ -1,85 +1,65 @@
 // mobile/src/store/auth.store.js
-// Zustand store for authentication state
+// Zustand store for authentication state with AsyncStorage persistence
 
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authApi } from '../api/auth.api';
 
+const TOKEN_KEY = 'access_token';
+const REFRESH_KEY = 'refresh_token';
+const USER_KEY = 'user_data';
+
 const useAuthStore = create((set, get) => ({
-  user: null,
-  accessToken: null,
+  token: null,
   refreshToken: null,
-  isAuthenticated: false,
-  isLoading: true, // true on startup while checking storage
+  user: null,
+  isInitialized: false,
 
-  /**
-   * Initialize auth state from AsyncStorage (called on app start)
-   */
-  initialize: async () => {
+  // Restore auth state from AsyncStorage on app boot
+  initAuth: async () => {
     try {
-      const [token, userStr] = await AsyncStorage.multiGet(['accessToken', 'user']);
-      const accessToken = token[1];
-      const user = userStr[1] ? JSON.parse(userStr[1]) : null;
-
-      if (accessToken && user) {
-        set({ accessToken, user, isAuthenticated: true });
-      }
-    } catch (e) {
-      // Storage read failed — start fresh
-    } finally {
-      set({ isLoading: false });
+      const [token, refreshToken, userJson] = await Promise.all([
+        AsyncStorage.getItem(TOKEN_KEY),
+        AsyncStorage.getItem(REFRESH_KEY),
+        AsyncStorage.getItem(USER_KEY),
+      ]);
+      const user = userJson ? JSON.parse(userJson) : null;
+      set({ token, refreshToken, user, isInitialized: true });
+    } catch {
+      set({ isInitialized: true });
     }
   },
 
-  /**
-   * Login and persist tokens
-   */
-  login: async (credentials) => {
-    const res = await authApi.login(credentials);
-    const { accessToken, refreshToken, user } = res.data.data;
-
-    await AsyncStorage.multiSet([
-      ['accessToken', accessToken],
-      ['refreshToken', refreshToken],
-      ['user', JSON.stringify(user)],
+  // Called after successful login/register
+  setAuth: async ({ token, refreshToken, user }) => {
+    await Promise.all([
+      AsyncStorage.setItem(TOKEN_KEY, token),
+      AsyncStorage.setItem(REFRESH_KEY, refreshToken),
+      AsyncStorage.setItem(USER_KEY, JSON.stringify(user)),
     ]);
-
-    set({ accessToken, refreshToken, user, isAuthenticated: true });
-    return res.data;
+    set({ token, refreshToken, user });
   },
 
-  /**
-   * Register and persist tokens
-   */
-  register: async (data) => {
-    const res = await authApi.register(data);
-    const { accessToken, refreshToken, user } = res.data.data;
-
-    await AsyncStorage.multiSet([
-      ['accessToken', accessToken],
-      ['refreshToken', refreshToken],
-      ['user', JSON.stringify(user)],
+  // Update stored tokens (called by axios refresh interceptor)
+  updateTokens: async ({ token, refreshToken }) => {
+    await Promise.all([
+      AsyncStorage.setItem(TOKEN_KEY, token),
+      AsyncStorage.setItem(REFRESH_KEY, refreshToken),
     ]);
-
-    set({ accessToken, refreshToken, user, isAuthenticated: true });
-    return res.data;
+    set({ token, refreshToken });
   },
 
-  /**
-   * Logout and clear storage
-   */
+  // Full logout
   logout: async () => {
-    try { await authApi.logout(); } catch (e) { /* ignore */ }
-    await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'user']);
-    set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false });
-  },
-
-  /**
-   * Update user profile in state and storage
-   */
-  setUser: async (user) => {
-    await AsyncStorage.setItem('user', JSON.stringify(user));
-    set({ user });
+    try {
+      await authApi.logout();
+    } catch (_) {}
+    await Promise.all([
+      AsyncStorage.removeItem(TOKEN_KEY),
+      AsyncStorage.removeItem(REFRESH_KEY),
+      AsyncStorage.removeItem(USER_KEY),
+    ]);
+    set({ token: null, refreshToken: null, user: null });
   },
 }));
 

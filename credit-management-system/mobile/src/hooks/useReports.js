@@ -1,28 +1,36 @@
 // mobile/src/hooks/useReports.js
+// React Query hooks for reports and dashboard data
+
 import { useQuery } from '@tanstack/react-query';
 import { reportApi } from '../api/report.api';
 
 export const useDashboard = () =>
   useQuery({
     queryKey: ['dashboard'],
-    queryFn: () => reportApi.getDashboard().then((r) => r.data.data),
-    staleTime: 1000 * 60 * 5, // 5 min
+    queryFn: () => reportApi.getDashboard().then((r) => r.data),
+    staleTime: 1000 * 60, // 1 minute
   });
 
-export const useOutstandingReport = () =>
+export const useOutstanding = () =>
   useQuery({
-    queryKey: ['report', 'outstanding'],
-    queryFn: () => reportApi.getOutstanding().then((r) => r.data.data),
+    queryKey: ['outstanding'],
+    queryFn: () => reportApi.getOutstanding().then((r) => r.data),
   });
 
-export const useAgingReport = () =>
+export const useAging = () =>
   useQuery({
-    queryKey: ['report', 'aging'],
-    queryFn: () => reportApi.getAging().then((r) => r.data.data),
+    queryKey: ['aging'],
+    queryFn: () => reportApi.getAging().then((r) => r.data),
   });
 
-export const usePaymentTrend = (months = 6) =>
+export const useKPIs = () =>
   useQuery({
-    queryKey: ['report', 'trend', months],
-    queryFn: () => reportApi.getPaymentTrend(months).then((r) => r.data.data),
+    queryKey: ['kpis'],
+    queryFn: () => reportApi.getKPIs().then((r) => r.data),
+  });
+
+export const usePaymentTrend = () =>
+  useQuery({
+    queryKey: ['paymentTrend'],
+    queryFn: () => reportApi.getPaymentTrend().then((r) => r.data),
   });

@@ -1,45 +1,59 @@
 // mobile/src/hooks/useAuth.js
-// Auth hook using React Query + Zustand store
+// Auth hooks using React Query mutations + Zustand store
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import useAuthStore from '../store/auth.store';
 import { authApi } from '../api/auth.api';
 import Toast from 'react-native-toast-message';
 
-export const useAuth = () => {
-  const { user, isAuthenticated, isLoading, login, register, logout } = useAuthStore();
-  const queryClient = useQueryClient();
-
-  const loginMutation = useMutation({
-    mutationFn: login,
-    onSuccess: () => Toast.show({ type: 'success', text1: 'Welcome back!' }),
-    onError: (err) =>
-      Toast.show({ type: 'error', text1: 'Login failed', text2: err.response?.data?.message || 'Check credentials' }),
-  });
-
-  const registerMutation = useMutation({
-    mutationFn: register,
-    onSuccess: () => Toast.show({ type: 'success', text1: 'Account created!' }),
-    onError: (err) =>
-      Toast.show({ type: 'error', text1: 'Registration failed', text2: err.response?.data?.message }),
-  });
-
-  const logoutMutation = useMutation({
-    mutationFn: logout,
-    onSuccess: () => {
-      queryClient.clear();
-      Toast.show({ type: 'success', text1: 'Logged out' });
+export const useRegister = () => {
+  const { setAuth } = useAuthStore();
+  return useMutation({
+    mutationFn: (data) => authApi.register(data).then((r) => r.data),
+    onSuccess: (res) => {
+      setAuth(res.data);
+      Toast.show({ type: 'success', text1: '🎉 Account created!', text2: `Welcome to CreditManager` });
+    },
+    onError: (err) => {
+      Toast.show({ type: 'error', text1: 'Registration failed', text2: err?.response?.data?.message || 'Please try again' });
     },
   });
-
-  return {
-    user,
-    isAuthenticated,
-    isLoading,
-    login: loginMutation.mutateAsync,
-    register: registerMutation.mutateAsync,
-    logout: logoutMutation.mutate,
-    isLoggingIn: loginMutation.isPending,
-    isRegistering: registerMutation.isPending,
-  };
 };
+
+export const useLogin = () => {
+  const { setAuth } = useAuthStore();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => authApi.login(data).then((r) => r.data),
+    onSuccess: (res) => {
+      setAuth(res.data);
+      qc.clear();
+      Toast.show({ type: 'success', text1: 'Welcome back! 👋' });
+    },
+    onError: (err) => {
+      Toast.show({ type: 'error', text1: 'Login failed', text2: err?.response?.data?.message || 'Invalid credentials' });
+    },
+  });
+};
+
+export const useLogout = () => {
+  const { logout } = useAuthStore();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      await logout();
+      qc.clear();
+    },
+    onError: () => {
+      // Even on error, local state is cleared
+    },
+  });
+};
+
+export const useChangePassword = () =>
+  useMutation({
+    mutationFn: (data) => authApi.changePassword(data).then((r) => r.data),
+    onError: (err) => {
+      Toast.show({ type: 'error', text1: 'Failed', text2: err?.response?.data?.message || 'Could not update password' });
+    },
+  });

@@ -15,33 +15,29 @@ export const ENDPOINTS = {
   // Customers
   CUSTOMERS: `${BASE}/customers`,
   CUSTOMER: (id) => `${BASE}/customers/${id}`,
-  CUSTOMER_RISK: (id) => `${BASE}/customers/${id}/risk`,
-  CUSTOMER_LIMIT: (id) => `${BASE}/customers/${id}/credit-limit`,
+  CUSTOMER_CREDIT_LIMIT: (id) => `${BASE}/customers/${id}/credit-limit`,
+  CUSTOMER_RISK: (id) => `${BASE}/customers/${id}/refresh-risk`,
 
-  // Credit
-  CREDIT: `${BASE}/credit`,
-  LEDGER: (customerId) => `${BASE}/credit/${customerId}/ledger`,
-  ACCOUNT_SUMMARY: (customerId) => `${BASE}/credit/${customerId}/summary`,
-  VOID_TRANSACTION: (txId) => `${BASE}/credit/${txId}/void`,
+  // Credit / Ledger
+  CREDITS: `${BASE}/credits`,
+  LEDGER: (customerId) => `${BASE}/credits/${customerId}/ledger`,
+  ACCOUNT_SUMMARY: (customerId) => `${BASE}/credits/${customerId}/summary`,
+  VOID_TRANSACTION: (txId) => `${BASE}/credits/transactions/${txId}/void`,
 
   // Payments
   PAYMENTS: `${BASE}/payments`,
   BULK_PAYMENT: `${BASE}/payments/bulk`,
-  PAYMENT_HISTORY: (customerId) => `${BASE}/payments/customer/${customerId}`,
+  PAYMENT_HISTORY: `${BASE}/payments/history`,
 
   // Reports
   OUTSTANDING: `${BASE}/reports/outstanding`,
   AGING: `${BASE}/reports/aging`,
   PAYMENT_TREND: `${BASE}/reports/payment-trend`,
   KPIS: `${BASE}/reports/kpis`,
-
-  // Dashboard
   DASHBOARD: `${BASE}/dashboard`,
 
   // Notifications
   NOTIFICATIONS: `${BASE}/notifications`,
-  MARK_READ: (id) => `${BASE}/notifications/${id}/read`,
-  MARK_ALL_READ: `${BASE}/notifications/read-all`,
+  NOTIFICATION_READ: (id) => `${BASE}/notifications/${id}/read`,
+  NOTIFICATIONS_READ_ALL: `${BASE}/notifications/read-all`,
 };
-
-export default ENDPOINTS;

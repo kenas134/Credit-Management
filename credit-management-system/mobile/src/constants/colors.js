@@ -9,12 +9,17 @@ const COLORS = {
   primaryBg: 'rgba(99,102,241,0.12)',
 
   // Backgrounds
+  background: '#0f172a',
   bgDark: '#0f172a',
   bgCard: '#1e293b',
-  bgInput: '#263244',
+  bgInput: '#1e293b',
+
+  // Surface (cards, inputs)
+  surface: '#1e293b',
 
   // Borders
-  border: 'rgba(255,255,255,0.08)',
+  border: '#334155',
+  borderLight: 'rgba(255,255,255,0.06)',
 
   // Status — Success
   success: '#22c55e',
@@ -40,4 +45,4 @@ const COLORS = {
   black: '#000000',
 };
 
-module.exports = COLORS;
+export default COLORS;

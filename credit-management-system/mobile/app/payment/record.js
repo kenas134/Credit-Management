@@ -4,12 +4,13 @@
 import { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator, Alert,
+  KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { useRecordPayment } from '../../src/hooks/usePayments';
 import { useCreateCredit } from '../../src/hooks/useCredits';
+import { Ionicons } from '@expo/vector-icons';
 import COLORS from '../../src/constants/colors';
 
 export default function RecordPaymentScreen() {
@@ -21,7 +22,7 @@ export default function RecordPaymentScreen() {
   const { mutate: createCredit, isPending: creditPending } = useCreateCredit();
   const isPending = payPending || creditPending;
 
-  const { control, handleSubmit, formState: { errors }, reset } = useForm({
+  const { control, handleSubmit, formState: { errors } } = useForm({
     defaultValues: { amount: '', description: '', dueDate: '' },
   });
 
@@ -47,10 +48,13 @@ export default function RecordPaymentScreen() {
   const isCredit = type === 'CREDIT';
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <KeyboardAvoidingView 
+      style={styles.container} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.closeBtn}>
-          <Text style={styles.closeIcon}>✕</Text>
+          <Ionicons name="close" size={24} color={COLORS.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.title}>{isCredit ? 'Issue Credit' : 'Record Payment'}</Text>
         <View style={{ width: 40 }} />
@@ -63,7 +67,7 @@ export default function RecordPaymentScreen() {
             style={[styles.toggleBtn, !isCredit && styles.toggleActive]}
             onPress={() => setType('PAYMENT')}
           >
-            <Text style={[styles.toggleText, !isCredit && styles.toggleTextActive]}>💰 Payment</Text>
+            <Text style={[styles.toggleText, !isCredit && styles.toggleTextActive]}>📥 Payment</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.toggleBtn, isCredit && styles.toggleActiveCredit]}
@@ -75,7 +79,7 @@ export default function RecordPaymentScreen() {
 
         {/* Amount */}
         <View style={styles.field}>
-          <Text style={styles.label}>Amount (GH₵) *</Text>
+          <Text style={styles.label}>Amount (ETB) *</Text>
           <Controller
             control={control} name="amount"
             rules={{ required: 'Amount is required', min: { value: 0.01, message: 'Must be > 0' } }}
@@ -85,7 +89,8 @@ export default function RecordPaymentScreen() {
                 placeholder="0.00"
                 placeholderTextColor={COLORS.textMuted}
                 keyboardType="decimal-pad"
-                value={value} onChangeText={onChange}
+                value={value} 
+                onChangeText={onChange}
               />
             )}
           />
@@ -100,9 +105,10 @@ export default function RecordPaymentScreen() {
             render={({ field: { onChange, value } }) => (
               <TextInput
                 style={styles.input}
-                placeholder={isCredit ? 'e.g. Groceries — rice, sugar, oil' : 'e.g. Cash payment'}
+                placeholder={isCredit ? 'e.g. Groceries (rice, sugar, oil)' : 'e.g. Cash payment'}
                 placeholderTextColor={COLORS.textMuted}
-                value={value} onChangeText={onChange}
+                value={value} 
+                onChangeText={onChange}
               />
             )}
           />
@@ -119,7 +125,8 @@ export default function RecordPaymentScreen() {
                   style={styles.input}
                   placeholder="2025-12-31"
                   placeholderTextColor={COLORS.textMuted}
-                  value={value} onChangeText={onChange}
+                  value={value} 
+                  onChangeText={onChange}
                 />
               )}
             />
@@ -128,7 +135,8 @@ export default function RecordPaymentScreen() {
 
         <TouchableOpacity
           style={[styles.submitBtn, isCredit && styles.submitBtnCredit, isPending && styles.disabled]}
-          onPress={handleSubmit(onSubmit)} disabled={isPending}
+          onPress={handleSubmit(onSubmit)} 
+          disabled={isPending}
         >
           {isPending ? <ActivityIndicator color="#fff" /> :
             <Text style={styles.submitText}>{isCredit ? 'Issue Credit' : 'Record Payment'}</Text>}
@@ -140,12 +148,20 @@ export default function RecordPaymentScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bgDark },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20, paddingTop: 56, borderBottomWidth: 1, borderBottomColor: COLORS.border },
-  closeBtn: { width: 36, height: 36, backgroundColor: COLORS.bgCard, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
-  closeIcon: { fontSize: 16, color: COLORS.textPrimary },
+  header: { 
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', 
+    padding: 20, paddingTop: 56, borderBottomWidth: 1, borderBottomColor: COLORS.border 
+  },
+  closeBtn: { 
+    width: 40, height: 40, backgroundColor: COLORS.bgCard, borderRadius: 12, 
+    justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: COLORS.border 
+  },
   title: { fontSize: 17, fontWeight: '700', color: COLORS.textPrimary },
   form: { padding: 20, paddingBottom: 60 },
-  toggle: { flexDirection: 'row', backgroundColor: COLORS.bgCard, borderRadius: 14, padding: 4, marginBottom: 24, borderWidth: 1, borderColor: COLORS.border },
+  toggle: { 
+    flexDirection: 'row', backgroundColor: COLORS.bgCard, borderRadius: 14, 
+    padding: 4, marginBottom: 24, borderWidth: 1, borderColor: COLORS.border 
+  },
   toggleBtn: { flex: 1, padding: 12, borderRadius: 10, alignItems: 'center' },
   toggleActive: { backgroundColor: COLORS.success },
   toggleActiveCredit: { backgroundColor: COLORS.danger },
@@ -153,8 +169,14 @@ const styles = StyleSheet.create({
   toggleTextActive: { color: '#fff', fontWeight: '700' },
   field: { marginBottom: 20 },
   label: { fontSize: 13, fontWeight: '600', color: COLORS.textSecondary, marginBottom: 8 },
-  amountInput: { backgroundColor: COLORS.bgCard, borderRadius: 14, padding: 18, fontSize: 28, fontWeight: '800', color: COLORS.textPrimary, borderWidth: 1, borderColor: COLORS.border, textAlign: 'center' },
-  input: { backgroundColor: COLORS.bgCard, borderRadius: 12, padding: 14, fontSize: 15, color: COLORS.textPrimary, borderWidth: 1, borderColor: COLORS.border },
+  amountInput: { 
+    backgroundColor: COLORS.bgCard, borderRadius: 14, padding: 18, fontSize: 28, 
+    fontWeight: '800', color: COLORS.textPrimary, borderWidth: 1, borderColor: COLORS.border, textAlign: 'center' 
+  },
+  input: { 
+    backgroundColor: COLORS.bgCard, borderRadius: 12, padding: 14, fontSize: 15, 
+    color: COLORS.textPrimary, borderWidth: 1, borderColor: COLORS.border 
+  },
   inputError: { borderColor: COLORS.danger },
   errText: { fontSize: 12, color: COLORS.danger, marginTop: 4 },
   submitBtn: { backgroundColor: COLORS.success, borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 8 },

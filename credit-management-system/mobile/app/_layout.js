@@ -4,12 +4,16 @@
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as SplashScreen from 'expo-splash-screen';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StyleSheet } from 'react-native';
 import useAuthStore from '../src/store/auth.store';
 import useOfflineSync from '../src/hooks/useOfflineSync';
+
+// Keep the splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,6 +41,11 @@ function RootLayoutInner() {
 }
 
 export default function RootLayout() {
+  useEffect(() => {
+    // Dismiss the splash screen once the root layout has mounted
+    SplashScreen.hideAsync();
+  }, []);
+
   return (
     <GestureHandlerRootView style={styles.root}>
       <QueryClientProvider client={queryClient}>

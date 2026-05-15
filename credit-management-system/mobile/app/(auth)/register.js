@@ -12,6 +12,36 @@ import { useForm, Controller } from 'react-hook-form';
 import { useRegister } from '../../src/hooks/useAuth';
 import COLORS from '../../src/constants/colors';
 
+// ─── Field must be OUTSIDE the screen component ──────────────────────────────
+// Defining it inside causes React to create a new component type on every
+// render, which unmounts/remounts the TextInput and drops focus after each char.
+function Field({ name, label, rules, placeholder, keyboardType, secureTextEntry, control, errors }) {
+  return (
+    <View style={styles.inputGroup}>
+      <Text style={styles.label}>{label}</Text>
+      <Controller
+        control={control}
+        name={name}
+        rules={rules}
+        render={({ field: { onChange, value } }) => (
+          <TextInput
+            style={[styles.input, errors[name] && styles.inputError]}
+            placeholder={placeholder}
+            placeholderTextColor={COLORS.textMuted}
+            keyboardType={keyboardType || 'default'}
+            secureTextEntry={secureTextEntry}
+            autoCorrect={false}
+            autoCapitalize="none"
+            value={value}
+            onChangeText={onChange}
+          />
+        )}
+      />
+      {errors[name] && <Text style={styles.errorText}>{errors[name].message}</Text>}
+    </View>
+  );
+}
+
 export default function RegisterScreen() {
   const router = useRouter();
   const { mutate: register, isPending } = useRegister();
@@ -35,29 +65,6 @@ export default function RegisterScreen() {
     });
   };
 
-  const Field = ({ name, label, rules, placeholder, keyboardType, secureTextEntry }) => (
-    <View style={styles.inputGroup}>
-      <Text style={styles.label}>{label}</Text>
-      <Controller
-        control={control}
-        name={name}
-        rules={rules}
-        render={({ field: { onChange, value } }) => (
-          <TextInput
-            style={[styles.input, errors[name] && styles.inputError]}
-            placeholder={placeholder}
-            placeholderTextColor={COLORS.textMuted}
-            keyboardType={keyboardType || 'default'}
-            secureTextEntry={secureTextEntry}
-            value={value}
-            onChangeText={onChange}
-          />
-        )}
-      />
-      {errors[name] && <Text style={styles.errorText}>{errors[name].message}</Text>}
-    </View>
-  );
-
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
@@ -74,15 +81,20 @@ export default function RegisterScreen() {
 
         <View style={styles.form}>
           <Field name="name" label="Your Full Name" placeholder="Kwame Asante"
+            control={control} errors={errors}
             rules={{ required: 'Full name is required', minLength: { value: 2, message: 'Minimum 2 characters' } }} />
           <Field name="shopName" label="Shop Name" placeholder="Asante Mini-Market"
+            control={control} errors={errors}
             rules={{ required: 'Shop name is required' }} />
           <Field name="phone" label="Phone Number" placeholder="+233501234567"
             keyboardType="phone-pad"
+            control={control} errors={errors}
             rules={{ required: 'Phone is required' }} />
           <Field name="password" label="Password" placeholder="Min. 8 characters"
             secureTextEntry={!showPassword}
+            control={control} errors={errors}
             rules={{ required: 'Password is required', minLength: { value: 8, message: 'Minimum 8 characters' } }} />
+
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Confirm Password</Text>
             <Controller
@@ -98,6 +110,8 @@ export default function RegisterScreen() {
                   placeholder="Re-enter password"
                   placeholderTextColor={COLORS.textMuted}
                   secureTextEntry={!showPassword}
+                  autoCorrect={false}
+                  autoCapitalize="none"
                   value={value}
                   onChangeText={onChange}
                 />
@@ -105,6 +119,13 @@ export default function RegisterScreen() {
             />
             {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword.message}</Text>}
           </View>
+
+          <TouchableOpacity
+            style={styles.showPasswordRow}
+            onPress={() => setShowPassword((p) => !p)}
+          >
+            <Text style={styles.showPasswordText}>{showPassword ? '🙈 Hide password' : '👁 Show password'}</Text>
+          </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.registerBtn, isPending && styles.disabled]}
@@ -148,6 +169,8 @@ const styles = StyleSheet.create({
   },
   inputError: { borderColor: COLORS.danger },
   errorText: { fontSize: 12, color: COLORS.danger, marginTop: 4 },
+  showPasswordRow: { alignItems: 'flex-end', marginBottom: 8, marginTop: -8 },
+  showPasswordText: { fontSize: 13, color: COLORS.primary },
   registerBtn: {
     backgroundColor: COLORS.primary, borderRadius: 14, padding: 16,
     alignItems: 'center', marginTop: 8,

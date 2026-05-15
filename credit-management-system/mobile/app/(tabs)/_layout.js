@@ -2,14 +2,23 @@
 // Bottom tab navigation layout
 
 import { Tabs } from 'expo-router';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import COLORS from '../../src/constants/colors';
 
-function TabIcon({ emoji, label, focused }) {
+const TABS = [
+  { name: 'dashboard', emoji: '🏠', label: 'Home' },
+  { name: 'customers', emoji: '👥', label: 'Customers' },
+  { name: 'reports',   emoji: '📈', label: 'Reports' },
+  { name: 'settings',  emoji: '⚙️',  label: 'Settings' },
+];
+
+// Must be defined OUTSIDE — same rule as Field in register.js
+function TabIcon({ emoji, focused }) {
   return (
-    <View style={[styles.tabItem, focused && styles.tabItemFocused]}>
-      <Text style={styles.emoji}>{emoji}</Text>
-      <Text style={[styles.tabLabel, focused && styles.tabLabelFocused]}>{label}</Text>
+    <View style={styles.tabItem}>
+      <View style={[styles.pill, focused && styles.pillActive]}>
+        <Text style={styles.emoji}>{emoji}</Text>
+      </View>
     </View>
   );
 }
@@ -19,34 +28,22 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: styles.tabBar,
         tabBarShowLabel: false,
+        tabBarStyle: styles.tabBar,
+        tabBarItemStyle: styles.tabBarItem,
       }}
     >
-      <Tabs.Screen
-        name="dashboard"
-        options={{
-          tabBarIcon: ({ focused }) => <TabIcon emoji="📊" label="Dashboard" focused={focused} />,
-        }}
-      />
-      <Tabs.Screen
-        name="customers"
-        options={{
-          tabBarIcon: ({ focused }) => <TabIcon emoji="👥" label="Customers" focused={focused} />,
-        }}
-      />
-      <Tabs.Screen
-        name="reports"
-        options={{
-          tabBarIcon: ({ focused }) => <TabIcon emoji="📈" label="Reports" focused={focused} />,
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          tabBarIcon: ({ focused }) => <TabIcon emoji="⚙️" label="Settings" focused={focused} />,
-        }}
-      />
+      {TABS.map(({ name, emoji, label }) => (
+        <Tabs.Screen
+          key={name}
+          name={name}
+          options={{
+            tabBarIcon: ({ focused }) => (
+              <TabIcon emoji={emoji} focused={focused} />
+            ),
+          }}
+        />
+      ))}
     </Tabs>
   );
 }
@@ -56,13 +53,51 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.bgCard,
     borderTopColor: COLORS.border,
     borderTopWidth: 1,
-    height: 70,
-    paddingBottom: 8,
-    paddingTop: 8,
+    height: Platform.OS === 'ios' ? 84 : 64,
+    paddingTop: 4,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 6,
+    paddingHorizontal: 0,
+    elevation: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
-  tabItem: { alignItems: 'center', paddingHorizontal: 12 },
-  tabItemFocused: {},
-  emoji: { fontSize: 22 },
-  tabLabel: { fontSize: 10, color: COLORS.textMuted, marginTop: 2 },
-  tabLabelFocused: { color: COLORS.primary, fontWeight: '700' },
+  tabBarItem: {
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 0,
+  },
+  tabItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+  },
+  pill: {
+    width: 48,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
+  pillActive: {
+    backgroundColor: COLORS.primaryBg,
+  },
+  emoji: {
+    fontSize: 19,
+    lineHeight: 22,
+  },
+  label: {
+    fontSize: 10,
+    color: COLORS.textMuted,
+    fontWeight: '500',
+    letterSpacing: 0.1,
+    marginTop: 1,
+  },
+  labelActive: {
+    color: COLORS.primary,
+    fontWeight: '700',
+  },
 });

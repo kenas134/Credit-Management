@@ -29,8 +29,8 @@ const getDashboard = asyncHandler(async (req, res) => {
       },
       include: {
         creditAccount: {
-          select: { currentBalance: true },
-          include: {
+          select: {
+            currentBalance: true,
             transactions: {
               where: { status: 'OVERDUE' },
               select: { amount: true, dueDate: true },

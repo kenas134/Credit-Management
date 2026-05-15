@@ -11,7 +11,8 @@ export const useRegister = () => {
   return useMutation({
     mutationFn: (data) => authApi.register(data).then((r) => r.data),
     onSuccess: (res) => {
-      setAuth(res.data);
+      const { accessToken: token, refreshToken, user } = res.data;
+      setAuth({ token, refreshToken, user });
       Toast.show({ type: 'success', text1: '🎉 Account created!', text2: `Welcome to CreditManager` });
     },
     onError: (err) => {
@@ -26,7 +27,8 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: (data) => authApi.login(data).then((r) => r.data),
     onSuccess: (res) => {
-      setAuth(res.data);
+      const { accessToken: token, refreshToken, user } = res.data;
+      setAuth({ token, refreshToken, user });
       qc.clear();
       Toast.show({ type: 'success', text1: 'Welcome back! 👋' });
     },

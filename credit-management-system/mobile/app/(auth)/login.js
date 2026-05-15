@@ -58,6 +58,8 @@ export default function LoginScreen() {
                   placeholder="+233 XX XXX XXXX"
                   placeholderTextColor={COLORS.textMuted}
                   keyboardType="phone-pad"
+                  autoCorrect={false}
+                  autoCapitalize="none"
                   value={value}
                   onChangeText={onChange}
                 />
@@ -79,6 +81,8 @@ export default function LoginScreen() {
                     placeholder="Enter your password"
                     placeholderTextColor={COLORS.textMuted}
                     secureTextEntry={!showPassword}
+                    autoCorrect={false}
+                    autoCapitalize="none"
                     value={value}
                     onChangeText={onChange}
                   />

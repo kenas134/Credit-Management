@@ -2,7 +2,6 @@
 // Monitors network state and triggers sync when back online
 
 import { useEffect } from 'react';
-import NetInfo from '@react-native-community/netinfo';
 import useSyncStore from '../store/sync.store';
 import { creditApi } from '../api/credit.api';
 import { paymentApi } from '../api/payment.api';
@@ -19,26 +18,39 @@ const processItem = async (item) => {
   }
 };
 
-export const useOfflineSync = () => {
+// Default export so _layout.js can do: import useOfflineSync from '...'
+export default function useOfflineSync() {
   const { setOnline, syncQueue, queue, loadQueue } = useSyncStore();
 
   useEffect(() => {
     loadQueue();
 
-    const unsubscribe = NetInfo.addEventListener((state) => {
-      const online = state.isConnected && state.isInternetReachable;
-      setOnline(online);
-
-      if (online && queue.length > 0) {
-        Toast.show({
-          type: 'info',
-          text1: 'Back online',
-          text2: `Syncing ${queue.length} offline operation(s)...`,
+    // Use fetch-based connectivity check (no NetInfo needed)
+    let interval;
+    const checkConnectivity = async () => {
+      try {
+        await fetch('https://www.google.com/generate_204', {
+          method: 'HEAD',
+          cache: 'no-cache',
         });
-        syncQueue(processItem);
+        setOnline(true);
+        if (queue.length > 0) {
+          Toast.show({
+            type: 'info',
+            text1: 'Back online',
+            text2: `Syncing ${queue.length} offline operation(s)...`,
+          });
+          syncQueue(processItem);
+        }
+      } catch {
+        setOnline(false);
       }
-    });
+    };
 
-    return () => unsubscribe();
+    // Check every 30 seconds
+    interval = setInterval(checkConnectivity, 30000);
+    checkConnectivity();
+
+    return () => clearInterval(interval);
   }, []);
-};
+}

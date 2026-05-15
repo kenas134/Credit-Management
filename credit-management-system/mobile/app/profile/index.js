@@ -10,6 +10,7 @@ import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import useAuthStore from '../../src/store/auth.store';
 import { useChangePassword } from '../../src/hooks/useAuth';
+import { Ionicons } from '@expo/vector-icons';
 import COLORS from '../../src/constants/colors';
 
 export default function ProfileScreen() {
@@ -40,7 +41,7 @@ export default function ProfileScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Text style={styles.backIcon}>←</Text>
+          <Ionicons name="arrow-back" size={22} color={COLORS.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.title}>My Profile</Text>
         <View style={{ width: 40 }} />
@@ -52,7 +53,7 @@ export default function ProfileScreen() {
           <Text style={styles.avatarText}>{(user?.name || 'U')[0].toUpperCase()}</Text>
         </View>
         <Text style={styles.name}>{user?.name}</Text>
-        <Text style={styles.role}>{user?.role} at {user?.shop?.name}</Text>
+        <Text style={styles.role}>{user?.role} at {user?.shop?.name || 'Your Shop'}</Text>
       </View>
 
       {/* Info Card */}
@@ -70,27 +71,26 @@ export default function ProfileScreen() {
           <Text style={styles.infoLabel}>Shop Name</Text>
           <Text style={styles.infoValue}>{user?.shop?.name}</Text>
         </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Shop Location</Text>
-          <Text style={styles.infoValue}>{user?.shop?.location || '—'}</Text>
-        </View>
         <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
           <Text style={styles.infoLabel}>Default Credit Limit</Text>
-          <Text style={styles.infoValue}>GH₵{user?.shop?.defaultCreditLimit || 500}</Text>
+          <Text style={styles.infoValue}>ETB {user?.shop?.defaultCreditLimit || 500}</Text>
         </View>
       </View>
 
-      {/* Change Password */}
+      {/* Change Password Toggle */}
       <TouchableOpacity style={styles.pwToggle} onPress={() => setShowPwForm(!showPwForm)}>
-        <Text style={styles.pwToggleText}>🔑 {showPwForm ? 'Hide' : 'Change'} Password</Text>
-        <Text style={styles.pwToggleArrow}>{showPwForm ? '▲' : '▼'}</Text>
+        <View style={styles.pwToggleLeft}>
+          <Ionicons name="key-outline" size={20} color={COLORS.textPrimary} style={{ marginRight: 10 }} />
+          <Text style={styles.pwToggleText}>{showPwForm ? 'Hide' : 'Change'} Password</Text>
+        </View>
+        <Ionicons name={showPwForm ? 'chevron-up' : 'chevron-down'} size={20} color={COLORS.textMuted} />
       </TouchableOpacity>
 
       {showPwForm && (
         <View style={styles.card}>
           {[
             { name: 'currentPassword', label: 'Current Password', rules: { required: 'Required' } },
-            { name: 'newPassword', label: 'New Password', rules: { required: 'Required', minLength: { value: 8, message: 'Min 8 chars' } } },
+            { name: 'newPassword', label: 'New Password', rules: { required: 'Required', minLength: { value: 6, message: 'Min 6 chars' } } },
             { name: 'confirmPassword', label: 'Confirm New Password', rules: { required: 'Required', validate: (v) => v === newPw || 'Passwords do not match' } },
           ].map(({ name, label, rules }) => (
             <View key={name} style={styles.field}>
@@ -103,7 +103,9 @@ export default function ProfileScreen() {
                     placeholder="••••••••"
                     placeholderTextColor={COLORS.textMuted}
                     secureTextEntry
-                    value={value} onChangeText={onChange}
+                    value={value} 
+                    onChangeText={onChange}
+                    autoCapitalize="none"
                   />
                 )}
               />
@@ -128,7 +130,6 @@ const styles = StyleSheet.create({
   content: { padding: 20, paddingTop: 56, paddingBottom: 80 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 },
   backBtn: { width: 40, height: 40, backgroundColor: COLORS.bgCard, borderRadius: 12, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: COLORS.border },
-  backIcon: { fontSize: 18, color: COLORS.textPrimary },
   title: { fontSize: 18, fontWeight: '700', color: COLORS.textPrimary },
   avatarSection: { alignItems: 'center', marginBottom: 28 },
   avatar: { width: 84, height: 84, borderRadius: 26, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center', marginBottom: 14, shadowColor: COLORS.primary, shadowOpacity: 0.4, shadowRadius: 16, elevation: 8 },
@@ -137,12 +138,12 @@ const styles = StyleSheet.create({
   role: { fontSize: 13, color: COLORS.primary, fontWeight: '600', marginTop: 4 },
   card: { backgroundColor: COLORS.bgCard, borderRadius: 18, padding: 18, marginBottom: 16, borderWidth: 1, borderColor: COLORS.border },
   cardTitle: { fontSize: 14, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 14 },
-  infoRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  infoRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   infoLabel: { fontSize: 13, color: COLORS.textSecondary },
   infoValue: { fontSize: 13, fontWeight: '600', color: COLORS.textPrimary, maxWidth: '60%', textAlign: 'right' },
   pwToggle: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: COLORS.bgCard, borderRadius: 14, padding: 18, marginBottom: 14, borderWidth: 1, borderColor: COLORS.border },
+  pwToggleLeft: { flexDirection: 'row', alignItems: 'center' },
   pwToggleText: { fontSize: 15, fontWeight: '600', color: COLORS.textPrimary },
-  pwToggleArrow: { fontSize: 14, color: COLORS.textMuted },
   field: { marginBottom: 14 },
   fieldLabel: { fontSize: 13, fontWeight: '600', color: COLORS.textSecondary, marginBottom: 7 },
   input: { backgroundColor: COLORS.bgInput, borderRadius: 12, padding: 14, fontSize: 15, color: COLORS.textPrimary, borderWidth: 1, borderColor: COLORS.border },

@@ -1,16 +1,220 @@
 // mobile/app/(tabs)/settings.js
-// Settings tab — profile, shop info, logout
+// Settings tab — profile, shop info, change password, logout
 
+import { useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
-  ScrollView, Switch, Alert,
+  ScrollView, Switch, Alert, Modal,
+  TextInput, ActivityIndicator, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import useAuthStore from '../../src/store/auth.store';
-import { useLogout } from '../../src/hooks/useAuth';
+import { useLogout, useChangePassword } from '../../src/hooks/useAuth';
+import { useShop, useUpdateShop } from '../../src/hooks/useShop';
+import { useNotifications } from '../../src/hooks/useNotifications';
 import COLORS from '../../src/constants/colors';
+import { Ionicons } from '@expo/vector-icons';
 
-function SettingRow({ emoji, label, value, onPress, isSwitch, switchValue, onSwitch, danger }) {
+// ─── Edit Shop Modal ────────────────────────────────────────────────────────
+function EditShopModal({ visible, onClose, initialData }) {
+  const [name, setName]       = useState(initialData?.name || '');
+  const [address, setAddress] = useState(initialData?.address || '');
+  const [phone, setPhone]     = useState(initialData?.phone || '');
+  const { mutate: updateShop, isPending } = useUpdateShop();
+
+  const handleSubmit = () => {
+    if (!name.trim()) {
+      Alert.alert('Error', 'Shop name is required.');
+      return;
+    }
+    updateShop(
+      { name, address, phone },
+      {
+        onSuccess: () => {
+          onClose();
+        },
+      }
+    );
+  };
+
+  return (
+    <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
+      <KeyboardAvoidingView
+        style={styles.modalOverlay}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View style={styles.modalCard}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>🏪 Edit Shop Details</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Ionicons name="close" size={24} color={COLORS.textMuted} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.modalField}>
+            <Text style={styles.modalLabel}>Shop Name</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={name}
+              onChangeText={setName}
+              placeholder="Enter shop name"
+              placeholderTextColor={COLORS.textMuted}
+            />
+          </View>
+
+          <View style={styles.modalField}>
+            <Text style={styles.modalLabel}>Location / Address</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={address}
+              onChangeText={setAddress}
+              placeholder="Enter address"
+              placeholderTextColor={COLORS.textMuted}
+            />
+          </View>
+
+          <View style={styles.modalField}>
+            <Text style={styles.modalLabel}>Shop Phone</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={phone}
+              onChangeText={setPhone}
+              placeholder="Enter shop phone"
+              placeholderTextColor={COLORS.textMuted}
+              keyboardType="phone-pad"
+            />
+          </View>
+
+          <TouchableOpacity
+            style={[styles.submitBtn, isPending && { opacity: 0.6 }]}
+            onPress={handleSubmit}
+            disabled={isPending}
+          >
+            {isPending
+              ? <ActivityIndicator color="#fff" />
+              : <Text style={styles.submitBtnText}>Save Changes</Text>}
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
+// ─── Change Password Modal ────────────────────────────────────────────────────
+function ChangePasswordModal({ visible, onClose }) {
+  const [current, setCurrent] = useState('');
+  const [next, setNext]       = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [showPw, setShowPw]   = useState(false);
+  const { mutate: changePassword, isPending } = useChangePassword();
+
+  const reset = () => { setCurrent(''); setNext(''); setConfirm(''); };
+
+  const handleSubmit = () => {
+    if (!current || !next || !confirm) {
+      Alert.alert('Error', 'All fields are required.');
+      return;
+    }
+    if (next.length < 6) {
+      Alert.alert('Error', 'New password must be at least 6 characters.');
+      return;
+    }
+    if (next !== confirm) {
+      Alert.alert('Error', 'New passwords do not match.');
+      return;
+    }
+    changePassword(
+      { currentPassword: current, newPassword: next },
+      {
+        onSuccess: () => {
+          Alert.alert('✅ Success', 'Password changed successfully.');
+          reset();
+          onClose();
+        },
+        onError: (err) => {
+          Alert.alert('❌ Failed', err?.response?.data?.message || 'Could not change password.');
+        },
+      }
+    );
+  };
+
+  return (
+    <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
+      <KeyboardAvoidingView
+        style={styles.modalOverlay}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View style={styles.modalCard}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>🔑 Change Password</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Ionicons name="close" size={24} color={COLORS.textMuted} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.modalField}>
+            <Text style={styles.modalLabel}>Current Password</Text>
+            <TextInput
+              style={styles.modalInput}
+              secureTextEntry={!showPw}
+              value={current}
+              onChangeText={setCurrent}
+              placeholder="Current password"
+              placeholderTextColor={COLORS.textMuted}
+              autoCorrect={false}
+              autoCapitalize="none"
+            />
+          </View>
+
+          <View style={styles.modalField}>
+            <Text style={styles.modalLabel}>New Password</Text>
+            <TextInput
+              style={styles.modalInput}
+              secureTextEntry={!showPw}
+              value={next}
+              onChangeText={setNext}
+              placeholder="New password"
+              placeholderTextColor={COLORS.textMuted}
+              autoCorrect={false}
+              autoCapitalize="none"
+            />
+          </View>
+
+          <View style={styles.modalField}>
+            <Text style={styles.modalLabel}>Confirm New Password</Text>
+            <TextInput
+              style={styles.modalInput}
+              secureTextEntry={!showPw}
+              value={confirm}
+              onChangeText={setConfirm}
+              placeholder="Confirm password"
+              placeholderTextColor={COLORS.textMuted}
+              autoCorrect={false}
+              autoCapitalize="none"
+            />
+          </View>
+
+          <TouchableOpacity onPress={() => setShowPw(p => !p)} style={styles.showPwRow}>
+            <Text style={styles.showPwText}>{showPw ? '🙈 Hide' : '👁 Show'} passwords</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.submitBtn, isPending && { opacity: 0.6 }]}
+            onPress={handleSubmit}
+            disabled={isPending}
+          >
+            {isPending
+              ? <ActivityIndicator color="#fff" />
+              : <Text style={styles.submitBtnText}>Update Password</Text>}
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
+// ─── Setting Row ──────────────────────────────────────────────────────────────
+function SettingRow({ icon, label, value, onPress, isSwitch, switchValue, onSwitch, danger }) {
   return (
     <TouchableOpacity
       style={[styles.row, danger && styles.rowDanger]}
@@ -18,7 +222,7 @@ function SettingRow({ emoji, label, value, onPress, isSwitch, switchValue, onSwi
       activeOpacity={0.7}
       disabled={isSwitch}
     >
-      <Text style={styles.rowEmoji}>{emoji}</Text>
+      <Ionicons name={icon} size={22} color={danger ? COLORS.danger : COLORS.textSecondary} style={styles.rowIcon} />
       <View style={styles.rowContent}>
         <Text style={[styles.rowLabel, danger && styles.rowLabelDanger]}>{label}</Text>
         {value && <Text style={styles.rowValue}>{value}</Text>}
@@ -31,7 +235,7 @@ function SettingRow({ emoji, label, value, onPress, isSwitch, switchValue, onSwi
           thumbColor="#fff"
         />
       ) : (
-        <Text style={[styles.rowArrow, danger && { color: COLORS.danger }]}>›</Text>
+        <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
       )}
     </TouchableOpacity>
   );
@@ -46,10 +250,16 @@ function Section({ title, children }) {
   );
 }
 
+// ─── Main Settings Screen ─────────────────────────────────────────────────────
 export default function SettingsScreen() {
-  const router = useRouter();
+  const router  = useRouter();
   const { user } = useAuthStore();
   const { mutate: logout } = useLogout();
+  const { data: shopData, isLoading: loadingShop } = useShop();
+  const { data: notifData } = useNotifications();
+  
+  const [showChangePw, setShowChangePw] = useState(false);
+  const [showEditShop, setShowEditShop] = useState(false);
 
   const handleLogout = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
@@ -62,82 +272,113 @@ export default function SettingsScreen() {
     ]);
   };
 
+  const shop = shopData || user?.shop;
+  const notifications = Array.isArray(notifData?.data) ? notifData.data : notifData?.data?.notifications || [];
+  const unreadCount = notifications.filter(n => n.status === 'UNREAD').length;
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.pageTitle}>Settings</Text>
+    <>
+      <ChangePasswordModal visible={showChangePw} onClose={() => setShowChangePw(false)} />
+      <EditShopModal visible={showEditShop} onClose={() => setShowEditShop(false)} initialData={shop} />
 
-      {/* Profile Card */}
-      <TouchableOpacity
-        style={styles.profileCard}
-        onPress={() => router.push('/profile/index')}
-        activeOpacity={0.8}
-      >
-        <View style={styles.profileAvatar}>
-          <Text style={styles.profileAvatarText}>{(user?.name || 'U')[0].toUpperCase()}</Text>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <View style={styles.headerRow}>
+          <Text style={styles.pageTitle}>Settings</Text>
+          <TouchableOpacity onPress={() => router.push('/notification/index')} style={styles.notifBtn}>
+            <Ionicons name="notifications-outline" size={26} color={COLORS.textPrimary} />
+            {unreadCount > 0 && <View style={styles.notifBadge} />}
+          </TouchableOpacity>
         </View>
-        <View style={styles.profileInfo}>
-          <Text style={styles.profileName}>{user?.name || 'Shop Owner'}</Text>
-          <Text style={styles.profileRole}>{user?.role || 'OWNER'} · {user?.shop?.name || 'Your Shop'}</Text>
-          <Text style={styles.profilePhone}>{user?.phone || ''}</Text>
+
+        {/* Profile Card */}
+        <View style={styles.profileCard}>
+          <View style={styles.profileAvatar}>
+            <Text style={styles.profileAvatarText}>{(user?.name || 'U')[0].toUpperCase()}</Text>
+          </View>
+          <View style={styles.profileInfo}>
+            <Text style={styles.profileName}>{user?.name || 'Shop Owner'}</Text>
+            <Text style={styles.profileRole}>{user?.role || 'OWNER'} · {shop?.name || 'Your Shop'}</Text>
+            <Text style={styles.profilePhone}>{user?.phone || ''}</Text>
+          </View>
         </View>
-        <Text style={styles.rowArrow}>›</Text>
-      </TouchableOpacity>
 
-      <Section title="Shop">
-        <SettingRow emoji="🏪" label="Shop Name" value={user?.shop?.name} onPress={() => router.push('/profile/index')} />
-        <SettingRow emoji="📍" label="Location" value={user?.shop?.location || 'Not set'} onPress={() => router.push('/profile/index')} />
-        <SettingRow emoji="💳" label="Default Credit Limit" value={`GH₵${user?.shop?.defaultCreditLimit || 500}`} onPress={() => router.push('/profile/index')} />
-      </Section>
+        <Section title="Shop Details">
+          <SettingRow icon="storefront-outline" label="Shop Name" value={shop?.name} onPress={() => setShowEditShop(true)} />
+          <SettingRow icon="location-outline" label="Location" value={shop?.address || 'Not set'} onPress={() => setShowEditShop(true)} />
+          <SettingRow icon="card-outline" label="Default Credit Limit" value={`ETB ${shop?.defaultCreditLimit || 500}`} onPress={() => {}} />
+        </Section>
 
-      <Section title="Notifications">
-        <SettingRow emoji="🔔" label="Payment Reminders" isSwitch switchValue={true} onSwitch={() => {}} />
-        <SettingRow emoji="⚠️" label="Overdue Alerts" isSwitch switchValue={true} onSwitch={() => {}} />
-        <SettingRow emoji="📲" label="View All Notifications" onPress={() => router.push('/notification/index')} />
-      </Section>
+        <Section title="Notifications">
+          <SettingRow icon="notifications-outline" label="Payment Reminders" isSwitch switchValue={true} onSwitch={() => {}} />
+          <SettingRow icon="alert-circle-outline" label="Overdue Alerts" isSwitch switchValue={true} onSwitch={() => {}} />
+        </Section>
 
-      <Section title="Data">
-        <SettingRow emoji="📊" label="View Full Reports" onPress={() => router.push('/(tabs)/reports')} />
-        <SettingRow emoji="🔄" label="Sync Data" onPress={() => Alert.alert('Sync', 'Data synced successfully!')} />
-      </Section>
+        <Section title="Account">
+          <SettingRow icon="key-outline" label="Change Password" onPress={() => setShowChangePw(true)} />
+          <SettingRow icon="log-out-outline" label="Sign Out" onPress={handleLogout} danger />
+        </Section>
 
-      <Section title="Account">
-        <SettingRow emoji="🔑" label="Change Password" onPress={() => router.push('/profile/index')} />
-        <SettingRow emoji="🚪" label="Sign Out" onPress={handleLogout} danger />
-      </Section>
-
-      <Text style={styles.version}>CreditManager v1.0.0</Text>
-    </ScrollView>
+        <Text style={styles.version}>CreditManager v1.1.0 · ETB Currency</Text>
+      </ScrollView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bgDark },
   content: { padding: 20, paddingTop: 56, paddingBottom: 100 },
-  pageTitle: { fontSize: 24, fontWeight: '800', color: COLORS.textPrimary, marginBottom: 24 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
+  pageTitle: { fontSize: 26, fontWeight: '800', color: COLORS.textPrimary },
+  notifBtn: { position: 'relative' },
+  notifBadge: { position: 'absolute', top: 0, right: 0, width: 10, height: 10, borderRadius: 5, backgroundColor: COLORS.danger, borderWidth: 2, borderColor: COLORS.bgDark },
+
   profileCard: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: COLORS.bgCard, borderRadius: 18, padding: 18,
-    borderWidth: 1, borderColor: COLORS.primary + '40', marginBottom: 24,
+    backgroundColor: COLORS.bgCard, borderRadius: 20, padding: 18,
+    borderWidth: 1, borderColor: COLORS.border, marginBottom: 24,
   },
   profileAvatar: {
-    width: 54, height: 54, borderRadius: 16,
-    backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center', marginRight: 14,
+    width: 60, height: 60, borderRadius: 16,
+    backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center', marginRight: 16,
   },
-  profileAvatarText: { fontSize: 22, fontWeight: '800', color: '#fff' },
+  profileAvatarText: { fontSize: 24, fontWeight: '800', color: '#fff' },
   profileInfo: { flex: 1 },
-  profileName: { fontSize: 17, fontWeight: '800', color: COLORS.textPrimary },
-  profileRole: { fontSize: 12, color: COLORS.primary, fontWeight: '600', marginTop: 2 },
+  profileName: { fontSize: 18, fontWeight: '800', color: COLORS.textPrimary },
+  profileRole: { fontSize: 13, color: COLORS.primary, fontWeight: '600', marginTop: 2 },
   profilePhone: { fontSize: 13, color: COLORS.textSecondary, marginTop: 2 },
-  section: { marginBottom: 20 },
-  sectionTitle: { fontSize: 12, fontWeight: '700', color: COLORS.textMuted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, marginLeft: 4 },
-  sectionCard: { backgroundColor: COLORS.bgCard, borderRadius: 16, borderWidth: 1, borderColor: COLORS.border, overflow: 'hidden' },
+
+  section: { marginBottom: 24 },
+  sectionTitle: { fontSize: 12, fontWeight: '700', color: COLORS.textMuted, textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 10, marginLeft: 4 },
+  sectionCard: { backgroundColor: COLORS.bgCard, borderRadius: 18, borderWidth: 1, borderColor: COLORS.border, overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   rowDanger: { borderBottomWidth: 0 },
-  rowEmoji: { fontSize: 20, marginRight: 14, width: 28, textAlign: 'center' },
+  rowIcon: { marginRight: 14, width: 24, textAlign: 'center' },
   rowContent: { flex: 1 },
-  rowLabel: { fontSize: 15, color: COLORS.textPrimary },
+  rowLabel: { fontSize: 15, color: COLORS.textPrimary, fontWeight: '500' },
   rowLabelDanger: { color: COLORS.danger },
-  rowValue: { fontSize: 12, color: COLORS.textSecondary, marginTop: 2 },
-  rowArrow: { fontSize: 20, color: COLORS.textMuted },
-  version: { textAlign: 'center', color: COLORS.textMuted, fontSize: 12, marginTop: 8 },
+  rowValue: { fontSize: 13, color: COLORS.textSecondary, marginTop: 2 },
+  version: { textAlign: 'center', color: COLORS.textMuted, fontSize: 12, marginTop: 10 },
+
+  // Modal
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', padding: 20 },
+  modalCard: {
+    backgroundColor: COLORS.bgCard, borderRadius: 24,
+    padding: 24, borderWidth: 1, borderColor: COLORS.border,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.5, shadowRadius: 20, elevation: 10,
+  },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
+  modalTitle: { fontSize: 19, fontWeight: '800', color: COLORS.textPrimary },
+  modalField: { marginBottom: 18 },
+  modalLabel: { fontSize: 13, fontWeight: '600', color: COLORS.textSecondary, marginBottom: 8 },
+  modalInput: {
+    backgroundColor: COLORS.bgInput, borderRadius: 12, padding: 15,
+    fontSize: 15, color: COLORS.textPrimary, borderWidth: 1, borderColor: COLORS.border,
+  },
+  showPwRow: { alignItems: 'flex-end', marginBottom: 20, marginTop: -8 },
+  showPwText: { fontSize: 13, color: COLORS.primary, fontWeight: '600' },
+  submitBtn: {
+    backgroundColor: COLORS.primary, borderRadius: 14,
+    padding: 16, alignItems: 'center', shadowColor: COLORS.primary, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5,
+  },
+  submitBtnText: { fontSize: 16, fontWeight: '700', color: '#fff' },
 });

@@ -4,13 +4,15 @@
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useDashboard } from '../../src/hooks/useReports';
+import { useNotifications } from '../../src/hooks/useNotifications';
 import useAuthStore from '../../src/store/auth.store';
 import COLORS from '../../src/constants/colors';
+import { Ionicons } from '@expo/vector-icons';
 
-function KPICard({ label, value, emoji, color, onPress }) {
+function KPICard({ label, value, icon, color, onPress }) {
   return (
     <TouchableOpacity style={[styles.kpiCard, { borderLeftColor: color }]} onPress={onPress} activeOpacity={0.8}>
-      <Text style={styles.kpiEmoji}>{emoji}</Text>
+      <Ionicons name={icon} size={28} color={color} style={styles.kpiIcon} />
       <Text style={[styles.kpiValue, { color }]}>{value}</Text>
       <Text style={styles.kpiLabel}>{label}</Text>
     </TouchableOpacity>
@@ -35,14 +37,18 @@ function TransactionRow({ item }) {
   return (
     <View style={styles.txRow}>
       <View style={[styles.txIcon, { backgroundColor: isCredit ? COLORS.dangerBg : COLORS.successBg }]}>
-        <Text>{isCredit ? '📤' : '📥'}</Text>
+        <Ionicons 
+          name={isCredit ? 'arrow-up-circle' : 'arrow-down-circle'} 
+          size={24} 
+          color={isCredit ? COLORS.danger : COLORS.success} 
+        />
       </View>
       <View style={styles.txInfo}>
         <Text style={styles.txName}>{item.customer?.fullName || 'Unknown'}</Text>
         <Text style={styles.txDate}>{new Date(item.createdAt).toLocaleDateString()}</Text>
       </View>
       <Text style={[styles.txAmount, { color: isCredit ? COLORS.danger : COLORS.success }]}>
-        {isCredit ? '-' : '+'}GH₵{parseFloat(item.amount).toFixed(2)}
+        {isCredit ? '-' : '+'}ETB {parseFloat(item.amount).toFixed(2)}
       </Text>
     </View>
   );
@@ -52,8 +58,11 @@ export default function DashboardScreen() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { data, isLoading, refetch, isRefetching } = useDashboard();
+  const { data: notifData } = useNotifications();
 
   const kpis = data?.data;
+  const notifications = Array.isArray(notifData?.data) ? notifData.data : notifData?.data?.notifications || [];
+  const unreadCount = notifications.filter(n => n.status === 'UNREAD').length;
 
   return (
     <ScrollView
@@ -68,7 +77,8 @@ export default function DashboardScreen() {
           <Text style={styles.shopName}>{user?.shop?.name || 'Your Shop'}</Text>
         </View>
         <TouchableOpacity onPress={() => router.push('/notification/index')} style={styles.notifBtn}>
-          <Text style={styles.notifIcon}>🔔</Text>
+          <Ionicons name="notifications-outline" size={24} color={COLORS.textPrimary} />
+          {unreadCount > 0 && <View style={styles.notifBadge} />}
         </TouchableOpacity>
       </View>
 
@@ -78,20 +88,20 @@ export default function DashboardScreen() {
       ) : (
         <>
           <View style={styles.kpiGrid}>
-            <KPICard label="Total Owed" value={`GH₵${parseFloat(kpis?.totalOutstanding || 0).toFixed(2)}`}
-              emoji="💰" color={COLORS.danger} onPress={() => router.push('/report/index')} />
+            <KPICard label="Total Owed" value={`ETB ${parseFloat(kpis?.totalOutstanding || 0).toFixed(2)}`}
+              icon="wallet-outline" color={COLORS.danger} onPress={() => router.push('/report/index')} />
             <KPICard label="Active Credits" value={kpis?.activeCredits || 0}
-              emoji="📋" color={COLORS.primary} onPress={() => router.push('/(tabs)/customers')} />
+              icon="list-outline" color={COLORS.primary} onPress={() => router.push('/(tabs)/customers')} />
             <KPICard label="Overdue" value={kpis?.overdueCount || 0}
-              emoji="⚠️" color={COLORS.warning} onPress={() => router.push('/report/index')} />
-            <KPICard label="Paid Today" value={`GH₵${parseFloat(kpis?.paidToday || 0).toFixed(2)}`}
-              emoji="✅" color={COLORS.success} />
+              icon="alert-circle-outline" color={COLORS.warning} onPress={() => router.push('/report/index')} />
+            <KPICard label="Paid Today" value={`ETB ${parseFloat(kpis?.paidToday || 0).toFixed(2)}`}
+              icon="checkmark-done-outline" color={COLORS.success} />
           </View>
 
           {/* Overdue Alerts */}
           {kpis?.overdueCustomers?.length > 0 && (
             <>
-              <SectionHeader title="🚨 Overdue Customers" onSeeAll={() => router.push('/report/index')} />
+              <SectionHeader title="⚠️ Overdue Customers" onSeeAll={() => router.push('/report/index')} />
               {kpis.overdueCustomers.slice(0, 3).map((c) => (
                 <TouchableOpacity
                   key={c.id}
@@ -105,7 +115,7 @@ export default function DashboardScreen() {
                     <Text style={styles.overdueName}>{c.fullName}</Text>
                     <Text style={styles.overduePhone}>{c.phone}</Text>
                   </View>
-                  <Text style={styles.overdueAmount}>GH₵{parseFloat(c.creditAccount?.balance || 0).toFixed(2)}</Text>
+                  <Text style={styles.overdueAmount}>ETB {parseFloat(c.creditAccount?.balance || 0).toFixed(2)}</Text>
                 </TouchableOpacity>
               ))}
             </>
@@ -131,16 +141,16 @@ const styles = StyleSheet.create({
   content: { padding: 20, paddingTop: 56, paddingBottom: 100 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 },
   greeting: { fontSize: 14, color: COLORS.textSecondary },
-  shopName: { fontSize: 22, fontWeight: '800', color: COLORS.textPrimary, marginTop: 2 },
-  notifBtn: { width: 44, height: 44, backgroundColor: COLORS.bgCard, borderRadius: 12, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: COLORS.border },
-  notifIcon: { fontSize: 20 },
+  shopName: { fontSize: 24, fontWeight: '800', color: COLORS.textPrimary, marginTop: 2 },
+  notifBtn: { width: 44, height: 44, backgroundColor: COLORS.bgCard, borderRadius: 12, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: COLORS.border, position: 'relative' },
+  notifBadge: { position: 'absolute', top: 10, right: 10, width: 10, height: 10, borderRadius: 5, backgroundColor: COLORS.danger, borderWidth: 2, borderColor: COLORS.bgCard },
   kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 28 },
   kpiCard: {
     flex: 1, minWidth: '45%', backgroundColor: COLORS.bgCard,
-    borderRadius: 16, padding: 16, borderLeftWidth: 3,
+    borderRadius: 16, padding: 16, borderLeftWidth: 4,
     borderWidth: 1, borderColor: COLORS.border,
   },
-  kpiEmoji: { fontSize: 24, marginBottom: 8 },
+  kpiIcon: { marginBottom: 10 },
   kpiValue: { fontSize: 20, fontWeight: '800' },
   kpiLabel: { fontSize: 12, color: COLORS.textSecondary, marginTop: 4 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, marginTop: 8 },
@@ -161,7 +171,7 @@ const styles = StyleSheet.create({
   overduePhone: { fontSize: 12, color: COLORS.textSecondary },
   overdueAmount: { fontSize: 15, fontWeight: '800', color: COLORS.danger },
   txRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.bgCard, borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: COLORS.border },
-  txIcon: { width: 38, height: 38, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  txIcon: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
   txInfo: { flex: 1 },
   txName: { fontSize: 14, fontWeight: '600', color: COLORS.textPrimary },
   txDate: { fontSize: 12, color: COLORS.textMuted },

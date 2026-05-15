@@ -33,7 +33,7 @@ function Field({ name, label, placeholder, rules, keyboardType, multiline, contr
             multiline={multiline}
             numberOfLines={multiline ? 3 : 1}
             autoCorrect={false}
-            autoCapitalize={keyboardType === 'email-address' ? 'none' : 'words'}
+            autoCapitalize="words"
             value={value}
             onChangeText={onChange}
           />
@@ -50,22 +50,31 @@ export default function AddCustomerScreen() {
 
   const { control, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
-      fullName: '', phone: '', email: '', address: '',
+      fullName: '', nickname: '', phone: '', address: '',
       creditLimit: '500', notes: '',
     },
   });
 
   const onSubmit = (data) => {
-    const payload = { ...data, creditLimit: parseFloat(data.creditLimit) || 500 };
+    // Standardize data: remove empty strings, parse numbers
+    const payload = {
+      fullName: data.fullName.trim(),
+      nickname: data.nickname?.trim() || undefined,
+      phone: data.phone.trim(),
+      address: data.address?.trim() || undefined,
+      creditLimit: parseFloat(data.creditLimit) || 500,
+      notes: data.notes?.trim() || undefined,
+    };
+
     createCustomer(payload, {
       onSuccess: (res) => {
-        const customerId = res?.data?.customer?.id || res?.data?.id;
-        if (customerId) router.replace(`/customer/${customerId}`);
-        else router.back();
-      },
-      onError: () => {
-        // Toast is shown by the hook, just go back after delay
-        setTimeout(() => router.back(), 1500);
+        // Our API returns { success: true, data: { id, ... } }
+        const customerId = res?.data?.id;
+        if (customerId) {
+          router.replace(`/customer/${customerId}`);
+        } else {
+          router.back();
+        }
       },
     });
   };
@@ -78,39 +87,39 @@ export default function AddCustomerScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.closeBtn}>
-          <Ionicons name="arrow-back" size={22} color={COLORS.textPrimary} />
+          <Ionicons name="close" size={22} color={COLORS.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.title}>Add Customer</Text>
+        <Text style={styles.title}>New Customer</Text>
         <View style={{ width: 40 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
         <Field
-          name="fullName" label="Full Name" placeholder="Kofi Mensah"
+          name="fullName" label="Full Name" placeholder="e.g. Abebe Bikila"
           control={control} errors={errors}
-          rules={{ required: 'Full name is required', minLength: { value: 2, message: 'Min 2 chars' } }}
+          rules={{ required: 'Full name is required', minLength: { value: 2, message: 'Min 2 characters' } }}
         />
         <Field
-          name="phone" label="Phone Number" placeholder="+251911234567"
+          name="nickname" label="Nickname / Business Name" placeholder="e.g. Kiosk Owner"
+          control={control} errors={errors}
+        />
+        <Field
+          name="phone" label="Phone Number" placeholder="+251 9xx xxx xxx"
           keyboardType="phone-pad" control={control} errors={errors}
           rules={{ required: 'Phone is required' }}
         />
         <Field
-          name="email" label="Email (optional)" placeholder="kofi@email.com"
-          keyboardType="email-address" control={control} errors={errors}
-        />
-        <Field
-          name="address" label="Address" placeholder="Addis Ababa, Ethiopia"
+          name="address" label="Location / Address" placeholder="Addis Ababa, Ethiopia"
           control={control} errors={errors}
         />
         <Field
-          name="creditLimit" label="Credit Limit (ETB)" placeholder="500"
+          name="creditLimit" label="Initial Credit Limit (ETB)" placeholder="500"
           keyboardType="numeric" control={control} errors={errors}
           rules={{ required: 'Credit limit is required' }}
         />
         <Field
-          name="notes" label="Notes (optional)"
-          placeholder="Any special notes about this customer..."
+          name="notes" label="Additional Notes"
+          placeholder="Any extra details..."
           multiline control={control} errors={errors}
         />
 
@@ -121,7 +130,7 @@ export default function AddCustomerScreen() {
         >
           {isPending
             ? <ActivityIndicator color="#fff" />
-            : <Text style={styles.submitText}>Add Customer</Text>}
+            : <Text style={styles.submitText}>Save Customer</Text>}
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -132,11 +141,11 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bgDark },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    padding: 20, paddingTop: 56,
-    borderBottomWidth: 1, borderBottomColor: COLORS.border,
+    padding: 20, paddingTop: 56, borderBottomWidth: 1, borderBottomColor: COLORS.border,
+    backgroundColor: COLORS.bgCard,
   },
   closeBtn: {
-    width: 40, height: 40, backgroundColor: COLORS.bgCard,
+    width: 40, height: 40, backgroundColor: COLORS.bgDark,
     borderRadius: 12, justifyContent: 'center', alignItems: 'center',
     borderWidth: 1, borderColor: COLORS.border,
   },

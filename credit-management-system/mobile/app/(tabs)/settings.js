@@ -1,7 +1,7 @@
 // mobile/app/(tabs)/settings.js
 // Settings tab — profile, shop info, change password, logout
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
   ScrollView, Switch, Alert, Modal,
@@ -14,6 +14,7 @@ import { useShop, useUpdateShop } from '../../src/hooks/useShop';
 import { useNotifications } from '../../src/hooks/useNotifications';
 import COLORS from '../../src/constants/colors';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // ─── Edit Shop Modal ────────────────────────────────────────────────────────
 function EditShopModal({ visible, onClose, initialData }) {
@@ -261,6 +262,33 @@ export default function SettingsScreen() {
   const [showChangePw, setShowChangePw] = useState(false);
   const [showEditShop, setShowEditShop] = useState(false);
 
+  // Settings state
+  const [paymentReminders, setPaymentReminders] = useState(true);
+  const [overdueAlerts, setOverdueAlerts] = useState(true);
+
+  // Load saved settings
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const pr = await AsyncStorage.getItem('@setting_paymentReminders');
+        const oa = await AsyncStorage.getItem('@setting_overdueAlerts');
+        if (pr !== null) setPaymentReminders(pr === 'true');
+        if (oa !== null) setOverdueAlerts(oa === 'true');
+      } catch (e) { console.error('Failed to load settings', e); }
+    };
+    loadSettings();
+  }, []);
+
+  const togglePaymentReminders = async (value) => {
+    setPaymentReminders(value);
+    await AsyncStorage.setItem('@setting_paymentReminders', String(value));
+  };
+
+  const toggleOverdueAlerts = async (value) => {
+    setOverdueAlerts(value);
+    await AsyncStorage.setItem('@setting_overdueAlerts', String(value));
+  };
+
   const handleLogout = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
@@ -309,8 +337,8 @@ export default function SettingsScreen() {
         </Section>
 
         <Section title="Notifications">
-          <SettingRow icon="notifications-outline" label="Payment Reminders" isSwitch switchValue={true} onSwitch={() => {}} />
-          <SettingRow icon="alert-circle-outline" label="Overdue Alerts" isSwitch switchValue={true} onSwitch={() => {}} />
+          <SettingRow icon="notifications-outline" label="Payment Reminders" isSwitch switchValue={paymentReminders} onSwitch={togglePaymentReminders} />
+          <SettingRow icon="alert-circle-outline" label="Overdue Alerts" isSwitch switchValue={overdueAlerts} onSwitch={toggleOverdueAlerts} />
         </Section>
 
         <Section title="Account">

@@ -32,7 +32,7 @@ export default function ReportDetailScreen() {
 
   const isLoading = lo || la || lk || lt;
   const kpiData = kpis?.data || {};
-  const agingData = aging?.data || {};
+  const agingData = aging?.data?.aging || {};
   const trendData = trend?.data || [];
   const outstandingList = outstanding?.data || [];
   const maxTrend = Math.max(...trendData.map((t) => t.amount || 0), 1);

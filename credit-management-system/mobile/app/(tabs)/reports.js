@@ -44,7 +44,7 @@ export default function ReportsScreen() {
 
   const isLoading = loadingOutstanding || loadingAging || loadingKPIs;
 
-  const agingData = aging?.data || {};
+  const agingData = aging?.data?.aging || {};
   const kpiData   = kpis?.data  || {};
 
   // Backend returns { customers: [...], totalOutstanding: N }

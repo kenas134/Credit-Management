@@ -284,7 +284,7 @@ export default function SettingsScreen() {
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         <View style={styles.headerRow}>
           <Text style={styles.pageTitle}>Settings</Text>
-          <TouchableOpacity onPress={() => router.push('/notification/index')} style={styles.notifBtn}>
+          <TouchableOpacity onPress={() => router.push('/notification')} style={styles.notifBtn}>
             <Ionicons name="notifications-outline" size={26} color={COLORS.textPrimary} />
             {unreadCount > 0 && <View style={styles.notifBadge} />}
           </TouchableOpacity>

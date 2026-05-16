@@ -76,7 +76,7 @@ export default function DashboardScreen() {
           <Text style={styles.greeting}>Good morning 👋</Text>
           <Text style={styles.shopName}>{user?.shop?.name || 'Your Shop'}</Text>
         </View>
-        <TouchableOpacity onPress={() => router.push('/notification/index')} style={styles.notifBtn}>
+        <TouchableOpacity onPress={() => router.push('/notification')} style={styles.notifBtn}>
           <Ionicons name="notifications-outline" size={24} color={COLORS.textPrimary} />
           {unreadCount > 0 && <View style={styles.notifBadge} />}
         </TouchableOpacity>

@@ -56,14 +56,17 @@ const reportRepository = {
    * Get shop-level KPI summary
    */
   getShopKPIs: async (shopId) => {
-    const [totalCustomers, activeDebtors, totalOutstanding, recentPayments] = await Promise.all([
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const [totalCustomers, activeDebtors, totalOutstanding, recentPayments, overdueCount, paidToday, writtenOff, avgRiskScore] = await Promise.all([
       prisma.customer.count({ where: { shopId, isActive: true } }),
       prisma.customer.count({
         where: { shopId, isActive: true, creditAccount: { currentBalance: { gt: 0 } } },
       }),
       prisma.creditAccount.aggregate({
         where: { customer: { shopId } },
-        _sum: { currentBalance: true },
+        _sum: { currentBalance: true, totalPaid: true },
       }),
       prisma.payment.aggregate({
         where: {
@@ -73,14 +76,48 @@ const reportRepository = {
         _sum: { amount: true },
         _count: true,
       }),
+      prisma.transaction.count({
+        where: {
+          status: 'OVERDUE',
+          creditAccount: { customer: { shopId } },
+        },
+      }),
+      prisma.payment.aggregate({
+        where: {
+          createdAt: { gte: todayStart },
+          transaction: { creditAccount: { customer: { shopId } } },
+        },
+        _sum: { amount: true },
+      }),
+      prisma.transaction.aggregate({
+        where: {
+          status: 'WRITTEN_OFF',
+          creditAccount: { customer: { shopId } },
+        },
+        _sum: { amount: true },
+      }),
+      prisma.customer.aggregate({
+        where: { shopId },
+        _avg: { trustScore: true },
+      }),
     ]);
+
+    const outSum = totalOutstanding._sum.currentBalance || 0;
+    const paidSum = totalOutstanding._sum.totalPaid || 0;
+    const collectionRate = outSum + paidSum > 0 ? Math.round((paidSum / (outSum + paidSum)) * 100) : 0;
 
     return {
       totalCustomers,
       activeDebtors,
-      totalOutstanding: totalOutstanding._sum.currentBalance || 0,
+      activeCredits: activeDebtors,
+      totalOutstanding: outSum,
       monthlyPaymentsTotal: recentPayments._sum.amount || 0,
       monthlyPaymentsCount: recentPayments._count,
+      overdueCount,
+      paidToday: paidToday._sum.amount || 0,
+      writtenOff: writtenOff._sum.amount || 0,
+      avgRiskScore: avgRiskScore._avg.trustScore ? avgRiskScore._avg.trustScore.toFixed(1) : 0,
+      collectionRate,
     };
   },
 };

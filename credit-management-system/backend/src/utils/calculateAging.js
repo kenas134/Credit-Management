@@ -10,12 +10,11 @@ const calculateAging = (transactions) => {
   const now = new Date();
 
   const buckets = {
-    current: { count: 0, amount: 0 },       // Not yet due
-    days1_30: { count: 0, amount: 0 },       // 1–30 days overdue
-    days31_60: { count: 0, amount: 0 },      // 31–60 days overdue
-    days61_90: { count: 0, amount: 0 },      // 61–90 days overdue
-    over90: { count: 0, amount: 0 },         // 90+ days overdue (write-off risk)
-    total: { count: 0, amount: 0 },
+    current: { count: 0, total: 0 },       // Not yet due
+    days30: { count: 0, total: 0 },        // 1–30 days overdue
+    days60: { count: 0, total: 0 },        // 31–60 days overdue
+    days90: { count: 0, total: 0 },        // 61+ days overdue
+    total: { count: 0, total: 0 },
   };
 
   transactions.forEach((tx) => {
@@ -27,29 +26,26 @@ const calculateAging = (transactions) => {
     const daysOverdue = Math.floor((now - new Date(tx.dueDate)) / (1000 * 60 * 60 * 24));
 
     buckets.total.count += 1;
-    buckets.total.amount += outstanding;
+    buckets.total.total += outstanding;
 
     if (daysOverdue <= 0) {
       buckets.current.count += 1;
-      buckets.current.amount += outstanding;
+      buckets.current.total += outstanding;
     } else if (daysOverdue <= 30) {
-      buckets.days1_30.count += 1;
-      buckets.days1_30.amount += outstanding;
+      buckets.days30.count += 1;
+      buckets.days30.total += outstanding;
     } else if (daysOverdue <= 60) {
-      buckets.days31_60.count += 1;
-      buckets.days31_60.amount += outstanding;
-    } else if (daysOverdue <= 90) {
-      buckets.days61_90.count += 1;
-      buckets.days61_90.amount += outstanding;
+      buckets.days60.count += 1;
+      buckets.days60.total += outstanding;
     } else {
-      buckets.over90.count += 1;
-      buckets.over90.amount += outstanding;
+      buckets.days90.count += 1;
+      buckets.days90.total += outstanding;
     }
   });
 
-  // Round all amounts
+  // Round all totals
   Object.keys(buckets).forEach((key) => {
-    buckets[key].amount = Math.round(buckets[key].amount * 100) / 100;
+    buckets[key].total = Math.round(buckets[key].total * 100) / 100;
   });
 
   return buckets;

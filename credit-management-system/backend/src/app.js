@@ -17,6 +17,9 @@ const swaggerSpec = require('./config/swagger');
 
 const app = express();
 
+// Trust reverse proxy (e.g., Render, Railway) for correct IP rate limiting
+app.set('trust proxy', 1);
+
 // ─── Security Middleware ──────────────────────────────────────────────────────
 app.use(helmet());
 app.use(cors({

@@ -64,6 +64,13 @@ export default function DashboardScreen() {
   const notifications = Array.isArray(notifData?.data) ? notifData.data : notifData?.data?.notifications || [];
   const unreadCount = notifData?.data?.unreadCount ?? notifications.filter(n => n.status === 'UNREAD').length;
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning 👋';
+    if (hour < 18) return 'Good afternoon ☀️';
+    return 'Good evening 🌙';
+  };
+
   return (
     <ScrollView
       style={styles.container}
@@ -73,7 +80,7 @@ export default function DashboardScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>Good morning 👋</Text>
+          <Text style={styles.greeting}>{getGreeting()}</Text>
           <Text style={styles.shopName}>{user?.shop?.name || 'Your Shop'}</Text>
         </View>
         <TouchableOpacity onPress={() => router.push('/notification')} style={styles.notifBtn}>

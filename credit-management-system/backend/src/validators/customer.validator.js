@@ -10,13 +10,13 @@ const createCustomerSchema = Joi.object({
   nickname: Joi.string().trim().max(50).optional().allow(''),
   phone: Joi.string()
     .trim()
-    .pattern(/^\+?[1-9]\d{7,14}$/)
+    .pattern(/^(09|07|\+2519|\+2517)\d{8}$/)
     .required()
     .messages({
-      'string.pattern.base': 'Phone must be a valid international format',
+      'string.pattern.base': 'Phone must be a valid Ethiopian number (e.g., 09..., 07..., +251...)',
       'any.required': 'Phone is required',
     }),
-  alternatePhone: Joi.string().trim().pattern(/^\+?[1-9]\d{7,14}$/).optional().allow(''),
+  alternatePhone: Joi.string().trim().pattern(/^(09|07|\+2519|\+2517)\d{8}$/).optional().allow(''),
   address: Joi.string().trim().max(300).optional().allow(''),
   notes: Joi.string().trim().max(500).optional().allow(''),
   creditLimit: Joi.number().positive().max(1000000).optional().default(5000),
@@ -25,7 +25,7 @@ const createCustomerSchema = Joi.object({
 const updateCustomerSchema = Joi.object({
   fullName: Joi.string().trim().min(2).max(150).optional(),
   nickname: Joi.string().trim().max(50).optional().allow(''),
-  alternatePhone: Joi.string().pattern(/^\+?[1-9]\d{7,14}$/).optional().allow(''),
+  alternatePhone: Joi.string().pattern(/^(09|07|\+2519|\+2517)\d{8}$/).optional().allow(''),
   address: Joi.string().trim().max(300).optional().allow(''),
   notes: Joi.string().trim().max(500).optional().allow(''),
   isActive: Joi.boolean().optional(),

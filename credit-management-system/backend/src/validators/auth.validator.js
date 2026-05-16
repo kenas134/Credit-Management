@@ -10,10 +10,10 @@ const registerSchema = Joi.object({
   }),
   phone: Joi.string()
     .trim()
-    .pattern(/^\+?\d{9,15}$/)
+    .pattern(/^(09|07|\+2519|\+2517)\d{8}$/)
     .required()
     .messages({
-      'string.pattern.base': 'Phone number must be a valid format (9-15 digits)',
+      'string.pattern.base': 'Phone number must be a valid Ethiopian number (e.g., 09..., 07..., +2519...)',
       'any.required': 'Phone number is required',
     }),
   email: Joi.string().trim().email().optional().allow(''),

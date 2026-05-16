@@ -86,7 +86,7 @@ export default function RegisterScreen() {
           <Field name="shopName" label="Shop Name" placeholder="Asante Mini-Market"
             control={control} errors={errors}
             rules={{ required: 'Shop name is required' }} />
-          <Field name="phone" label="Phone Number" placeholder="+233501234567"
+          <Field name="phone" label="Phone Number" placeholder="0912345678"
             keyboardType="phone-pad"
             control={control} errors={errors}
             rules={{ required: 'Phone is required' }} />

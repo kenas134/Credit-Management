@@ -55,7 +55,7 @@ export default function LoginScreen() {
               render={({ field: { onChange, value } }) => (
                 <TextInput
                   style={[styles.input, errors.phone && styles.inputError]}
-                  placeholder="+233 XX XXX XXXX"
+                  placeholder="09XX XXX XXXX"
                   placeholderTextColor={COLORS.textMuted}
                   keyboardType="phone-pad"
                   autoCorrect={false}

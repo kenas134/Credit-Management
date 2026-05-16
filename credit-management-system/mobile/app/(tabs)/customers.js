@@ -12,7 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import COLORS from '../../src/constants/colors';
 
 function CustomerCard({ item, onPress }) {
-  const balance = parseFloat(item.creditAccount?.balance || 0);
+  const balance = parseFloat(item.creditAccount?.currentBalance || 0);
   const isOverdue = item.creditAccount?.status === 'OVERDUE';
   const isPaid = balance <= 0;
 

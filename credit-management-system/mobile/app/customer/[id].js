@@ -57,9 +57,9 @@ export default function CustomerDetailScreen() {
   const { data: lData, isLoading: loadingLedger } = useLedger(id);
 
   const customer = cData?.data;
-  const ledger = lData?.data?.transactions || [];
+  const ledger = lData?.data?.account?.transactions || [];
   const account = customer?.creditAccount;
-  const balance = parseFloat(account?.balance || 0);
+  const balance = parseFloat(account?.currentBalance || 0);
   const trustScore = parseFloat(customer?.trustScore || 0);
 
   if (isLoading) return <View style={styles.loading}><ActivityIndicator color={COLORS.primary} size="large" /></View>;

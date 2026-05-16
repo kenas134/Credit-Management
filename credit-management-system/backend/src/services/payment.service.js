@@ -6,7 +6,8 @@ const customerRepository = require('../repositories/customer.repository');
 const creditRepository = require('../repositories/credit.repository');
 const notificationRepository = require('../repositories/notification.repository');
 const { AppError } = require('../middlewares/error.middleware');
-const { getPagination, buildPaginationMeta } = require('../utils/pagination');
+const { getPagination } = require('../utils/pagination');
+const prisma = require('../config/db');
 
 const paymentService = {
   /**
@@ -24,13 +25,16 @@ const paymentService = {
 
     const { payment, transaction: updatedTx } = await paymentRepository.recordPayment(paymentData);
 
+    // Get shop owner ID to notify
+    const shop = await prisma.shop.findUnique({ where: { id: shopId }, select: { ownerId: true } });
+
     // Send notification if fully paid
     if (updatedTx.status === 'PAID') {
       await notificationRepository.create({
         type: 'PAYMENT_RECEIVED',
         title: 'Payment Received — Fully Settled',
-        message: `${transaction.creditAccount.customer.fullName} has fully paid GHS ${transaction.amount}. Balance cleared.`,
-        userId: null, // will be set via shop owner lookup in production
+        message: `${transaction.creditAccount.customer.fullName} has fully paid ETB ${transaction.amount}. Balance cleared.`,
+        userId: shop?.ownerId, 
         customerId: transaction.creditAccount.customer.id,
       });
     }
@@ -54,11 +58,15 @@ const paymentService = {
 
     const result = await paymentRepository.bulkPayment({ customerId, amount, method, notes });
 
+    // Get shop owner ID
+    const shop = await prisma.shop.findUnique({ where: { id: shopId }, select: { ownerId: true } });
+
     // Notification
     await notificationRepository.create({
       type: 'PAYMENT_RECEIVED',
       title: 'Bulk Payment Received',
-      message: `${customer.fullName} paid GHS ${result.amountApplied} across ${result.paymentsCreated.length} transactions.`,
+      message: `${customer.fullName} paid ETB ${result.amountApplied} across ${result.paymentsCreated.length} transactions.`,
+      userId: shop?.ownerId,
       customerId,
     });
 

@@ -29,8 +29,7 @@ const getDashboard = asyncHandler(async (req, res) => {
       },
       include: {
         creditAccount: {
-          select: {
-            currentBalance: true,
+          include: {
             transactions: {
               where: { status: 'OVERDUE' },
               select: { amount: true, dueDate: true },
@@ -55,7 +54,7 @@ const getDashboard = asyncHandler(async (req, res) => {
     }),
   ]);
 
-  return sendSuccess(res, { kpis, overdueCustomers, recentTransactions }, 'Dashboard data loaded');
+  return sendSuccess(res, { ...kpis, overdueCustomers, recentTransactions }, 'Dashboard data loaded');
 });
 
 module.exports = { getDashboard };

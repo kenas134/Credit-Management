@@ -44,7 +44,7 @@ function TransactionRow({ item }) {
         />
       </View>
       <View style={styles.txInfo}>
-        <Text style={styles.txName}>{item.customer?.fullName || 'Unknown'}</Text>
+        <Text style={styles.txName}>{item.creditAccount?.customer?.fullName || 'Unknown'}</Text>
         <Text style={styles.txDate}>{new Date(item.createdAt).toLocaleDateString()}</Text>
       </View>
       <Text style={[styles.txAmount, { color: isCredit ? COLORS.danger : COLORS.success }]}>
@@ -62,7 +62,7 @@ export default function DashboardScreen() {
 
   const kpis = data?.data;
   const notifications = Array.isArray(notifData?.data) ? notifData.data : notifData?.data?.notifications || [];
-  const unreadCount = notifications.filter(n => n.status === 'UNREAD').length;
+  const unreadCount = notifData?.data?.unreadCount ?? notifications.filter(n => n.status === 'UNREAD').length;
 
   return (
     <ScrollView
@@ -115,7 +115,7 @@ export default function DashboardScreen() {
                     <Text style={styles.overdueName}>{c.fullName}</Text>
                     <Text style={styles.overduePhone}>{c.phone}</Text>
                   </View>
-                  <Text style={styles.overdueAmount}>ETB {parseFloat(c.creditAccount?.balance || 0).toFixed(2)}</Text>
+                  <Text style={styles.overdueAmount}>ETB {parseFloat(c.creditAccount?.currentBalance || 0).toFixed(2)}</Text>
                 </TouchableOpacity>
               ))}
             </>

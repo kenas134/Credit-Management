@@ -4,14 +4,14 @@
 const Joi = require('joi');
 
 const recordPaymentSchema = Joi.object({
-  transactionId: Joi.string().required().messages({
+  transactionId: Joi.string().trim().required().messages({
     'any.required': 'Transaction ID is required',
   }),
   amount: Joi.number().positive().required().messages({
     'any.required': 'Payment amount is required',
     'number.positive': 'Payment amount must be positive',
   }),
-  method: Joi.string()
+  method: Joi.string().trim()
     .valid('CASH', 'MOBILE_MONEY', 'BANK_TRANSFER', 'OTHER')
     .optional()
     .default('CASH'),
@@ -21,9 +21,9 @@ const recordPaymentSchema = Joi.object({
 });
 
 const bulkPaymentSchema = Joi.object({
-  customerId: Joi.string().required(),
+  customerId: Joi.string().trim().required(),
   amount: Joi.number().positive().required(),
-  method: Joi.string()
+  method: Joi.string().trim()
     .valid('CASH', 'MOBILE_MONEY', 'BANK_TRANSFER', 'OTHER')
     .optional()
     .default('CASH'),

@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
-import { useRecordPayment } from '../../src/hooks/usePayments';
+import { useBulkPayment } from '../../src/hooks/usePayments';
 import { useCreateCredit } from '../../src/hooks/useCredits';
 import { Ionicons } from '@expo/vector-icons';
 import COLORS from '../../src/constants/colors';
@@ -18,7 +18,7 @@ export default function RecordPaymentScreen() {
   const { customerId, type: initialType } = useLocalSearchParams();
   const [type, setType] = useState(initialType || 'PAYMENT');
 
-  const { mutate: recordPayment, isPending: payPending } = useRecordPayment();
+  const { mutate: bulkPayment, isPending: payPending } = useBulkPayment();
   const { mutate: createCredit, isPending: creditPending } = useCreateCredit();
   const isPending = payPending || creditPending;
 
@@ -28,8 +28,13 @@ export default function RecordPaymentScreen() {
 
   const onSubmit = (data) => {
     if (type === 'PAYMENT') {
-      recordPayment(
-        { customerId, amount: parseFloat(data.amount), notes: data.description },
+      bulkPayment(
+        { 
+          customerId, 
+          amount: parseFloat(data.amount), 
+          notes: data.description,
+          method: 'CASH' // Default method
+        },
         { onSuccess: () => router.back() }
       );
     } else {

@@ -3,8 +3,10 @@
 
 const creditRepository = require('../repositories/credit.repository');
 const customerRepository = require('../repositories/customer.repository');
+const notificationRepository = require('../repositories/notification.repository');
 const { AppError } = require('../middlewares/error.middleware');
 const { getPagination, buildPaginationMeta } = require('../utils/pagination');
+const prisma = require('../config/db');
 
 const creditService = {
   /**
@@ -19,7 +21,7 @@ const creditService = {
     const account = await creditRepository.findAccountWithTransactions(customerId, { skip, limit });
     if (!account) throw new AppError('Credit account not found', 404);
 
-    const total = await require('../config/db').transaction.count({
+    const total = await prisma.transaction.count({
       where: { creditAccountId: account.id },
     });
 
@@ -52,6 +54,16 @@ const creditService = {
       description,
       dueDate,
       reference,
+    });
+
+    // Create Notification for the shop owner
+    const shop = await prisma.shop.findUnique({ where: { id: shopId }, select: { ownerId: true } });
+    await notificationRepository.create({
+      type: 'SYSTEM',
+      title: 'New Credit Issued',
+      message: `Issued ETB ${amount} credit to ${customer.fullName}. New balance: ETB ${currentBalance + amount}.`,
+      userId: shop?.ownerId,
+      customerId: customer.id,
     });
 
     return transaction;

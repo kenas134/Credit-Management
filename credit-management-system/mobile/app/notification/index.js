@@ -53,7 +53,7 @@ export default function NotificationsScreen() {
 
   // Handle both array and object response
   const notifications = Array.isArray(data?.data) ? data.data : data?.data?.notifications || [];
-  const unreadCount = notifications.filter((n) => n.status === 'UNREAD').length;
+  const unreadCount = data?.data?.unreadCount ?? notifications.filter((n) => n.status === 'UNREAD').length;
 
   return (
     <View style={styles.container}>

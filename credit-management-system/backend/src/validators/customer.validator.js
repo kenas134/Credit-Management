@@ -9,13 +9,14 @@ const createCustomerSchema = Joi.object({
   }),
   nickname: Joi.string().trim().max(50).optional().allow(''),
   phone: Joi.string()
+    .trim()
     .pattern(/^\+?[1-9]\d{7,14}$/)
     .required()
     .messages({
       'string.pattern.base': 'Phone must be a valid international format',
       'any.required': 'Phone is required',
     }),
-  alternatePhone: Joi.string().pattern(/^\+?[1-9]\d{7,14}$/).optional().allow(''),
+  alternatePhone: Joi.string().trim().pattern(/^\+?[1-9]\d{7,14}$/).optional().allow(''),
   address: Joi.string().trim().max(300).optional().allow(''),
   notes: Joi.string().trim().max(500).optional().allow(''),
   creditLimit: Joi.number().positive().max(1000000).optional().default(5000),
@@ -24,7 +25,6 @@ const createCustomerSchema = Joi.object({
 const updateCustomerSchema = Joi.object({
   fullName: Joi.string().trim().min(2).max(150).optional(),
   nickname: Joi.string().trim().max(50).optional().allow(''),
-  phone: Joi.string().pattern(/^\+?[1-9]\d{7,14}$/).optional(),
   alternatePhone: Joi.string().pattern(/^\+?[1-9]\d{7,14}$/).optional().allow(''),
   address: Joi.string().trim().max(300).optional().allow(''),
   notes: Joi.string().trim().max(500).optional().allow(''),

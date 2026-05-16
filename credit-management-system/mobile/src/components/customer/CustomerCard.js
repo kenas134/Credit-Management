@@ -17,7 +17,7 @@ export default function CustomerCard({ customer }) {
     .toUpperCase();
 
   const balanceColor =
-    customer.creditAccount?.balance > 0
+    customer.creditAccount?.currentBalance > 0
       ? COLORS.danger
       : COLORS.success;
 
@@ -45,7 +45,7 @@ export default function CustomerCard({ customer }) {
         <View style={styles.row}>
           <Text style={styles.balanceLabel}>Balance: </Text>
           <Text style={[styles.balance, { color: balanceColor }]}>
-            {formatGHS(customer.creditAccount?.balance || 0)}
+            {formatGHS(customer.creditAccount?.currentBalance || 0)}
           </Text>
         </View>
       </View>

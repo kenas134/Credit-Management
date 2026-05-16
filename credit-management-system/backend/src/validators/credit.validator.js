@@ -4,7 +4,7 @@
 const Joi = require('joi');
 
 const createCreditSchema = Joi.object({
-  customerId: Joi.string().required().messages({ 'any.required': 'Customer ID is required' }),
+  customerId: Joi.string().trim().required().messages({ 'any.required': 'Customer ID is required' }),
   amount: Joi.number().positive().required().messages({
     'any.required': 'Amount is required',
     'number.positive': 'Amount must be positive',

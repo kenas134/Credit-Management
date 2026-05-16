@@ -9,14 +9,15 @@ const registerSchema = Joi.object({
     'any.required': 'Name is required',
   }),
   phone: Joi.string()
-    .pattern(/^\+?[1-9]\d{7,14}$/)
+    .trim()
+    .pattern(/^\+?\d{9,15}$/)
     .required()
     .messages({
-      'string.pattern.base': 'Phone number must be a valid international format',
+      'string.pattern.base': 'Phone number must be a valid format (9-15 digits)',
       'any.required': 'Phone number is required',
     }),
-  email: Joi.string().email().optional().allow(''),
-  password: Joi.string().min(6).max(100).required().messages({
+  email: Joi.string().trim().email().optional().allow(''),
+  password: Joi.string().trim().min(6).max(100).required().messages({
     'string.min': 'Password must be at least 6 characters',
     'any.required': 'Password is required',
   }),
@@ -27,8 +28,8 @@ const registerSchema = Joi.object({
 });
 
 const loginSchema = Joi.object({
-  phone: Joi.string().required().messages({ 'any.required': 'Phone number is required' }),
-  password: Joi.string().required().messages({ 'any.required': 'Password is required' }),
+  phone: Joi.string().trim().required().messages({ 'any.required': 'Phone number is required' }),
+  password: Joi.string().trim().required().messages({ 'any.required': 'Password is required' }),
 });
 
 const refreshTokenSchema = Joi.object({

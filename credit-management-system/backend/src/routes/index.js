@@ -14,7 +14,7 @@ const dashboardRoutes = require('./dashboard.routes');
 
 router.use('/auth', authRoutes);
 router.use('/customers', customerRoutes);
-router.use('/credit', creditRoutes);
+router.use('/credits', creditRoutes);
 router.use('/payments', paymentRoutes);
 router.use('/reports', reportRoutes);
 router.use('/notifications', notificationRoutes);
@@ -26,7 +26,7 @@ router.get('/', (req, res) => {
     name: 'Credit Management System API',
     version: '1.0.0',
     status: 'running',
-    endpoints: ['/auth', '/customers', '/credit', '/payments', '/reports', '/notifications', '/dashboard'],
+    endpoints: ['/auth', '/customers', '/credits', '/payments', '/reports', '/notifications', '/dashboard'],
     docs: '/api/docs',
   });
 });

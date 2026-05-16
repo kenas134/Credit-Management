@@ -5,7 +5,7 @@ import COLORS from '../../constants/colors';
 import { formatGHS } from '../../utils/formatCurrency';
 
 export default function BalanceCard({ account, onIssueCredit, onRecordPayment }) {
-  const balance = account?.balance ?? 0;
+  const balance = account?.currentBalance ?? 0;
   const creditLimit = account?.creditLimit ?? 0;
   const utilization = creditLimit > 0 ? Math.min((balance / creditLimit) * 100, 100) : 0;
 

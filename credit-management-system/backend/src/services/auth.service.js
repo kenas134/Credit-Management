@@ -41,7 +41,13 @@ const authService = {
    * Login with phone + password
    */
   login: async ({ phone, password }) => {
-    const user = await userRepository.findByPhone(phone);
+    let user = await userRepository.findByPhone(phone);
+    
+    // Try adding '+' if not found and doesn't start with one
+    if (!user && !phone.startsWith('+')) {
+      user = await userRepository.findByPhone(`+${phone}`);
+    }
+
     if (!user) throw new AppError('Invalid phone number or password', 401);
     if (!user.isActive) throw new AppError('Your account has been deactivated', 403);
 

@@ -123,7 +123,7 @@ export default function ReportDetailScreen() {
             </View>
           ) : (
             outstandingList.map((c) => {
-              const balance = parseFloat(c.creditAccount?.balance || 0);
+              const balance = parseFloat(c.creditAccount?.currentBalance || 0);
               const risk = parseFloat(c.riskScore || 0);
               return (
                 <TouchableOpacity

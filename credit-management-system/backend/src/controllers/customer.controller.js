@@ -3,7 +3,7 @@
 
 const customerService = require('../services/customer.service');
 const asyncHandler = require('../utils/asyncHandler');
-const { sendSuccess, sendCreated } = require('../utils/apiResponse');
+const { sendSuccess, sendCreated, sendPaginated } = require('../utils/apiResponse');
 const { buildPaginationMeta } = require('../utils/pagination');
 
 /**
@@ -32,13 +32,7 @@ const getAll = asyncHandler(async (req, res) => {
   const { customers, total } = await customerService.getAll(shopId, req.query);
   const { page, limit } = require('../utils/pagination').getPagination(req.query);
 
-  return res.status(200).json({
-    success: true,
-    message: 'Customers retrieved',
-    data: customers,
-    pagination: buildPaginationMeta(total, page, limit),
-    timestamp: new Date().toISOString(),
-  });
+  return sendPaginated(res, { customers, total }, buildPaginationMeta(total, page, limit), 'Customers retrieved');
 });
 
 /**

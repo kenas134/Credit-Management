@@ -274,7 +274,7 @@ export default function SettingsScreen() {
 
   const shop = shopData || user?.shop;
   const notifications = Array.isArray(notifData?.data) ? notifData.data : notifData?.data?.notifications || [];
-  const unreadCount = notifications.filter(n => n.status === 'UNREAD').length;
+  const unreadCount = notifData?.data?.unreadCount ?? notifications.filter(n => n.status === 'UNREAD').length;
 
   return (
     <>

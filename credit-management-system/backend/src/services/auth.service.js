@@ -41,11 +41,18 @@ const authService = {
    * Login with phone + password
    */
   login: async ({ phone, password }) => {
-    let user = await userRepository.findByPhone(phone);
+    let normalizedPhone = phone.trim();
     
-    // Try adding '+' if not found and doesn't start with one
-    if (!user && !phone.startsWith('+')) {
-      user = await userRepository.findByPhone(`+${phone}`);
+    // Normalize Ethiopian formats: +2519... -> 09...
+    if (normalizedPhone.startsWith('+251')) {
+      normalizedPhone = '0' + normalizedPhone.slice(4);
+    }
+
+    let user = await userRepository.findByPhone(normalizedPhone);
+    
+    // Fallback: try adding +251 if not found
+    if (!user && normalizedPhone.startsWith('0')) {
+      user = await userRepository.findByPhone('+251' + normalizedPhone.slice(1));
     }
 
     if (!user) throw new AppError('Invalid phone number or password', 401);

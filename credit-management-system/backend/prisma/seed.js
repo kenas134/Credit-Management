@@ -26,9 +26,9 @@ async function main() {
 
   const owner = await prisma.user.create({
     data: {
-      name: 'Ato Mensah',
-      phone: '+233244001234',
-      email: 'ato.mensah@example.com',
+      name: 'Abebe Bikila',
+      phone: '0911223344',
+      email: 'abebe.bikila@example.com',
       password: hashedPassword,
       role: 'OWNER',
     },
@@ -39,9 +39,9 @@ async function main() {
   // ─── Create Shop ──────────────────────────────────────────────────────────
   const shop = await prisma.shop.create({
     data: {
-      name: "Ato's Mini Mart",
-      address: 'Osu Market Road, Accra, Ghana',
-      phone: '+233244001234',
+      name: "Abebe's Mini Mart",
+      address: 'Bole Road, Addis Ababa, Ethiopia',
+      phone: '0911223344',
       ownerId: owner.id,
     },
   });
@@ -53,8 +53,8 @@ async function main() {
     {
       fullName: 'Abena Owusu',
       nickname: 'Nana',
-      phone: '+233244111001',
-      address: 'Labone, Accra',
+      phone: '0911333001',
+      address: 'Bole, Addis Ababa',
       trustScore: 8.5,
       riskLevel: 'LOW',
       shopId: shop.id,
@@ -62,8 +62,8 @@ async function main() {
     {
       fullName: 'Kofi Asante',
       nickname: 'Big K',
-      phone: '+233244111002',
-      address: 'Adabraka, Accra',
+      phone: '0911333002',
+      address: 'Piazza, Addis Ababa',
       trustScore: 6.0,
       riskLevel: 'MEDIUM',
       shopId: shop.id,
@@ -71,8 +71,8 @@ async function main() {
     {
       fullName: 'Ama Boateng',
       nickname: 'Mama Ama',
-      phone: '+233244111003',
-      address: 'Nima, Accra',
+      phone: '0911333003',
+      address: 'Mercato, Addis Ababa',
       trustScore: 4.5,
       riskLevel: 'HIGH',
       shopId: shop.id,
@@ -80,8 +80,8 @@ async function main() {
     {
       fullName: 'Kwame Darko',
       nickname: 'K-Dubs',
-      phone: '+233244111004',
-      address: 'Asylum Down, Accra',
+      phone: '0911333004',
+      address: 'Casanchis, Addis Ababa',
       trustScore: 9.0,
       riskLevel: 'LOW',
       shopId: shop.id,
@@ -89,8 +89,8 @@ async function main() {
     {
       fullName: 'Akosua Frimpong',
       nickname: 'Serwaa',
-      phone: '+233244111005',
-      address: 'East Legon, Accra',
+      phone: '0911333005',
+      address: 'Old Airport, Addis Ababa',
       trustScore: 3.0,
       riskLevel: 'CRITICAL',
       shopId: shop.id,
